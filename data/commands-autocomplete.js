@@ -40,7 +40,7 @@ function generateUnderlined(wholeString, subString) {
   }
   // occurs at the end
   else {
-    return "<span>" + wholeString.substring(0, startIndex - 1) + "</span>" + 
-           "<span class='typed'>" + wholeString.substring(startIndex) + "</span>";
+    return "<span>" + wholeString.substring(0, startIndex) + "</span>" + 
+           "<span class='typed'>" + subString + "</span>";
   }
 }
