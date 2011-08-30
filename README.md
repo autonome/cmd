@@ -3,7 +3,7 @@ While many of the browser commands might have  keyboard shortcuts, I often do no
 This add-on allows me to just type the first few characters and hit  enter. 
 This add-on does not require a browser restart.
 
-<a title="Install cmd" href="http://people.mozilla.com/~dietrich/cmd.xpi">Install</a>.
+<a title="Install cmd" href="http://j.mp/ihff3A">Install</a>.
 
 Usage and features:
 <ul>

@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded", function() {
   var cmd = document.getElementById("cmd");
 
   // handle messages from jetpack code
-  on("message", function(msg) {
+  self.on("message", function(msg) {
     msg = JSON.parse(msg);
     if (msg.completed) {
       if (msg.typed) {
