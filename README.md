@@ -7,12 +7,14 @@ This add-on does not require a browser restart.
 
 Usage and features:
 <ul>
-  <li>Launch cmd with control+shift+;. In the next release this will be configurable via a preference.</li>
+  <li>Launch cmd with control+shift+; (cmd+shift+; on Mac). Eventually this will be configurable via a preference.</li>
   <li>Start typing to see matching commands.</li>
-  <li>Hit  the tab key to cycle through multiple matches (shift+tab to cycle  backwards). Example: type "pre" and hit tab a bunch of times.</li>
+  <li>Hit the tab key to cycle through multiple matches (shift+tab to cycle  backwards). Example: type "pre" and hit tab a bunch of times.</li>
   <li>Hit enter to select the current match.</li>
   <li>Hit escape to hide cmd without selecting a command.</li>
   <li>The last executed command is shown by default.</li>
+  <li>Sorting: Results are sorted by the number of times you've selected that result.</li>
+  <li>Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").</li>
 </ul>
 The  available commands are based on all existing menu items and registered  keyboard shortcuts that reference &lt;command&gt; elements in the  browser.
 
