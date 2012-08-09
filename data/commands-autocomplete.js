@@ -19,9 +19,6 @@ window.addEventListener("DOMContentLoaded", function() {
       cmd.style.color = "red";
     }
   });
-
-  // sent init message to jetpack code
-  //postMessage(JSON.stringify({init: true}));
 }, false);
 
 function generateUnderlined(wholeString, subString) {
