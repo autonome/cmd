@@ -42,7 +42,7 @@ window.addEventListener("DOMContentLoaded", function() {
   window.removeEventListener("DOMContentLoaded", arguments.callee, false)
   cmd = document.getElementById("cmd")
   self.port.on('commands', function(msg) {
-    commands = msg.commands
+    commands = commands.concat(msg.commands)
   })
 }, false)
 
@@ -229,3 +229,5 @@ function findMatchingCommands(text) {
   return matches;
 }
 
+
+// Google Docs
