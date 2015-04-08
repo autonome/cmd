@@ -1,7 +1,6 @@
 // NOW
 // TODO: configurable shortcut
 // TODO: adaptive matching (incrementing)
-// TODO: fix font in 29+
 
 // FUTURE
 // TODO: add support for registering new commands at runtime
@@ -10,7 +9,7 @@
 // TODO: better fix for overflow text
 
 
-let cmd = null,
+var cmd = null,
     commands = [],
     active = false,
     typed = "",
@@ -22,16 +21,16 @@ let cmd = null,
 if (!localStorage.cmdMatchCounts)
   localStorage.cmdMatchCounts = {};
 
-function updateMatchCount(alias) {
-  localStorage.cmdMatchCounts[alias]++;
+function updateMatchCount(name) {
+  localStorage.cmdMatchCounts[name]++;
 }
 
 // set up adaptive match storage
 if (!localStorage.cmdMatchFeedback)
   localStorage.cmdMatchFeedback = {};
 
-function updateMatchFeedback(typed, alias) {
-  localStorage.cmdMatchFeedback[typed] = alias;
+function updateMatchFeedback(typed, name) {
+  localStorage.cmdMatchFeedback[typed] = name;
 }
 
 self.port.on('show', function() {
@@ -46,9 +45,9 @@ window.addEventListener("DOMContentLoaded", function() {
   })
 }, false)
 
-function execute(alias) {
+function execute(name) {
   self.port.emit('execute', {
-    alias: alias
+    name: name
   });
 }
 
@@ -91,12 +90,12 @@ function onKeyPress(e) {
   // if user pressed return, attempt to execute command
   //console.log('RETURN?', e.which == e.DOM_VK_RETURN, hasModifier(e))
   if (e.which == e.DOM_VK_RETURN && !hasModifier(e)) {
-    let alias = matches[matchIndex];
-    if (commands.indexOf(alias) > -1) {
-      execute(alias);
-      lastExecuted = alias;
-      updateMatchCount(alias);
-      updateMatchFeedback(typed, alias);
+    var name = matches[matchIndex];
+    if (commands.indexOf(name) > -1) {
+      execute(name);
+      lastExecuted = name;
+      updateMatchCount(name);
+      updateMatchFeedback(typed, name);
       typed = "";
       // ONLY IF OWN WINDOW
       //window.close();
@@ -202,7 +201,7 @@ function update(typed, completed) {
 }
 
 function findMatchingCommands(text) {
-  let match = null,
+  var match = null,
       count = commands.length,
       matches = [];
 
@@ -228,6 +227,3 @@ function findMatchingCommands(text) {
 
   return matches;
 }
-
-
-// Google Docs
