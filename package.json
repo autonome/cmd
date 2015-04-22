@@ -6,5 +6,5 @@
     "title": "cmd", 
     "id": "jid0-IwGwzPi3AqlZLfHV1nfcQbYQj6E@jetpack", 
     "description": "Quick command execution for Firefox - default shortcut is control/command + shift + semi-colon.",
-    "main": "./lib/index.js"
+    "main": "index"
 }

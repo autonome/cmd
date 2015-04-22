@@ -1,86 +1,107 @@
 // NOW
-// TODO: configurable shortcut
-// TODO: adaptive matching (incrementing)
+// TODO: sessions
 
 // FUTURE
-// TODO: add support for registering new commands at runtime
-// TODO: support selection feedback ranking
-// TODO: support remembering last-executed command across restarts
-// TODO: better fix for overflow text
+// TODO: configurable shortcut
+// TODO: remember last-executed command across restarts
+// TODO: better visual fix for overflow text
+// TODO: store adaptive matching data in add-on, not localStorage
 
 
 var cmd = null,
-    commands = [],
-    active = false,
-    typed = "",
-    matches = [],
-    matchIndex = 0,
-    lastExecuted = "";
+    commands = [], // array of command names
+    active = false, // is ui visible
+    typed = '', // text typed by user so far, if any
+    matches = [], // array of commands matching the typed text
+    matchIndex = 0, // index of ???
+    lastExecuted = ''; // text last typed by user when last they hit return
 
 // set up match ranking storage
 if (!localStorage.cmdMatchCounts)
   localStorage.cmdMatchCounts = {};
 
-function updateMatchCount(name) {
-  localStorage.cmdMatchCounts[name]++;
-}
-
 // set up adaptive match storage
 if (!localStorage.cmdMatchFeedback)
   localStorage.cmdMatchFeedback = {};
 
-function updateMatchFeedback(typed, name) {
-  localStorage.cmdMatchFeedback[typed] = name;
+function onVisibilityChange() {
+  window.focus()
+  if (document.hidden) {
+    active = false
+  }
+  else {
+    active = true
+    // panel is visible, so initialize input box
+    update("", lastExecuted || "Type a command...");
+  }
 }
 
 self.port.on('show', function() {
   onVisibilityChange()
 })
 
-window.addEventListener("DOMContentLoaded", function() {
-  window.removeEventListener("DOMContentLoaded", arguments.callee, false)
-  cmd = document.getElementById("cmd")
+self.port.on('hide', function() {
+  typed = ''
+})
+
+
+window.addEventListener('DOMContentLoaded', function() {
+  window.removeEventListener('DOMContentLoaded', arguments.callee, false)
+  cmd = document.getElementById('cmd')
   self.port.on('commands', function(msg) {
-    commands = commands.concat(msg.commands)
+    commands = msg.commands
   })
 }, false)
 
-function execute(name) {
+function execute(name, typed) {
   self.port.emit('execute', {
-    name: name
+    name: name,
+    typed: typed
   });
 }
 
-function generateUnderlined(wholeString, subString) {
-  var startIndex = wholeString.toLowerCase().indexOf(subString.toLowerCase());
-  var endIndex = startIndex + subString.length;
-  var str = ''
-  // substring is empty
-  if (!subString) {
-    str = "<span>" + wholeString + "</span>"
+function findMatchingCommands(text) {
+  var count = commands.length,
+      matches = [];
+
+  // Iterate over all commands, searching for matches
+  for (var i = 0; i < count; i++) {
+    // Match when:
+    // 1. typed string is anywhere in a command name
+    // 2. command name is at beginning of typed string
+    //    (eg: for command input - "weather san diego")
+    if (commands[i].toLowerCase().indexOf(typed.toLowerCase()) != -1 ||
+        typed.toLowerCase().indexOf(commands[i].toLowerCase()) === 0) {
+      matches.push(commands[i]);
+    }
   }
-  // occurs at beginning
-  else if (startIndex === 0) {
-    str = "<span class='typed'>" + subString + "</span>" + 
-          "<span class='completed'>" + wholeString.substring(subString.length) + "</span>";
+
+  // sort by match count
+  matches.sort(function(a, b) {
+    var aCount = localStorage.cmdMatchCounts[a] || 0;
+    var bCount = localStorage.cmdMatchCounts[b] || 0;
+    return bCount - aCount;
+  })
+
+  // insert adaptive feedback
+  if (localStorage.cmdMatchFeedback[typed]) {
+    matches.unshift(localStorage.cmdMatchFeedback[typed])
   }
-  // occurs in middle
-  else if (endIndex != wholeString.length) {
-    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
-          "<span class='typed'>" + wholeString.substring(startIndex, startIndex + subString.length) + "</span>" +
-          "<span class='completed'>" + wholeString.substring(endIndex) + "</span>";
-  }
-  // occurs at the end
-  else {
-    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
-          "<span class='typed'>" + subString + "</span>";
-  }
-  return str;
+
+  return matches;
+}
+
+function updateMatchFeedback(typed, name) {
+  localStorage.cmdMatchFeedback[typed] = name;
+}
+
+function updateMatchCount(name) {
+  localStorage.cmdMatchCounts[name]++;
 }
 
 function onKeyPress(e) {
   //console.log('onKeyUp', String.fromCharCode(e.which), 'active?', active)
-  //console.log(e.which, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey)
+  //console.log('?', e.key, e.which, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey)
   if (!active) {
     return;
   }
@@ -88,11 +109,10 @@ function onKeyPress(e) {
   e.preventDefault();
 
   // if user pressed return, attempt to execute command
-  //console.log('RETURN?', e.which == e.DOM_VK_RETURN, hasModifier(e))
-  if (e.which == e.DOM_VK_RETURN && !hasModifier(e)) {
+  if (e.key == 'Enter' && !hasModifier(e)) {
     var name = matches[matchIndex];
     if (commands.indexOf(name) > -1) {
-      execute(name);
+      execute(name, typed);
       lastExecuted = name;
       updateMatchCount(name);
       updateMatchFeedback(typed, name);
@@ -101,17 +121,20 @@ function onKeyPress(e) {
       //window.close();
     }
   }
-
   // attempt to complete typed characters to a command
+  // or do other modifications based on user typed keys
   else if (!hasModifier(e) && !isModifier(e) && !isIgnorable(e)) {
     //console.log('active, no modifier, is not a modifier and not ignorable')
+
     // correct on backspace
-    if (e.which == 8)
+    if (e.key == 'Backspace') {
       typed = typed.substring(0, typed.length - 1);
+    }
     // otherwise add typed character to buffer
     else {
       //console.log('updating', String.fromCharCode(e.which))
-      typed += String.fromCharCode(e.which);
+      //typed += String.fromCharCode(e.which);
+      typed += e.key
     }
 
     // search, and update UI
@@ -124,15 +147,30 @@ function onKeyPress(e) {
       update(typed);
     }
   }
-
+  // if up arrow and currently visible command is not first, select one previous
+  else if (e.key == 'ArrowUp' && matchIndex) {
+    update(typed, matches[--matchIndex]);
+  }
+  // if down array and there are more matches, select the next one
+  else if (e.key == 'ArrowDown' && matchIndex + 1 < matches.length) {
+    update(typed, matches[++matchIndex]);
+  }
+  // Old behavior on tab:
   // tab -> shift to next result
   // shift + tab -> shift to previous result
-  else if (e.keyCode == e.DOM_VK_TAB) {
-    //console.log('tab')
+  // New behavior on tab:
+  // autocomplete to the matched command
+  // which allows easy adding onto a command name
+  // without having to type all the same visible text
+  else if (e.key == 'Tab') {
+    typed = matches[matchIndex]
+    update(typed, matches[matchIndex]);
+    /*
     if (e.shiftKey && matchIndex)
       update(typed, matches[--matchIndex]);
     else if (matchIndex + 1 < matches.length)
       update(typed, matches[++matchIndex]);
+    */
   }
 }
 window.addEventListener("keypress", onKeyPress, false);
@@ -172,22 +210,7 @@ function isIgnorable(e) {
   }
 }
 
-function onVisibilityChange() {
-  //console.log('onVisibilityChange')
-  window.focus()
-  if (document.hidden) {
-    active = false
-  }
-  else {
-    active = true
-    // panel is visible, so initialize input box
-    update("", lastExecuted || "Type a command...");
-  }
-}
-//document.addEventListener("visibilitychange", onVisibilityChange, false);
-
 function update(typed, completed) {
-  //console.log('update', typed, completed)
   var cmd = document.querySelector("#cmd")
   var str = ''
   if (completed) {
@@ -200,30 +223,35 @@ function update(typed, completed) {
   cmd.innerHTML = str
 }
 
-function findMatchingCommands(text) {
-  var match = null,
-      count = commands.length,
-      matches = [];
-
-  // basic index search
-  // TODO: wat. fix this shit.
-  for (var i = 0; i < count; i++) {
-    if (commands[i].toLowerCase().indexOf(typed.toLowerCase()) != -1)
-      matches.push(commands[i]);
+// completed, typed
+function generateUnderlined(wholeString, subString) {
+  // user already matched a commmand and added params
+  if (subString.length > wholeString.length &&
+      subString.indexOf(wholeString) === 0) {
+    return subString;
   }
-
-  // sort by match count
-  matches.sort(function(a, b) {
-    var aCount = localStorage.cmdMatchCounts[a] || 0;
-    var bCount = localStorage.cmdMatchCounts[b] || 0;
-    return bCount - aCount;
-  })
-
-  // insert adaptive feedback
-  if (localStorage.cmdMatchFeedback[typed]) {
-    //console.log('ADAPT!')
-    matches.unshift(localStorage.cmdMatchFeedback[typed])
+  var startIndex = wholeString.toLowerCase().indexOf(subString.toLowerCase());
+  var endIndex = startIndex + subString.length;
+  var str = ''
+  // substring is empty
+  if (!subString) {
+    str = "<span>" + wholeString + "</span>"
   }
-
-  return matches;
+  // occurs at beginning
+  else if (startIndex === 0) {
+    str = "<span class='typed'>" + subString + "</span>" + 
+          "<span class='completed'>" + wholeString.substring(subString.length) + "</span>";
+  }
+  // occurs in middle
+  else if (endIndex != wholeString.length) {
+    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
+          "<span class='typed'>" + wholeString.substring(startIndex, startIndex + subString.length) + "</span>" +
+          "<span class='completed'>" + wholeString.substring(endIndex) + "</span>";
+  }
+  // occurs at the end
+  else {
+    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
+          "<span class='typed'>" + subString + "</span>";
+  }
+  return str;
 }
