@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "cmd-ui",
+  "description": "Generic inline command UI.",
+  "author": "Dietrich Ayala",
+  "version": "1.0.0",
+  "applications": {
+    "gecko": {
+      "id": "cmd-ui@metafluff.com"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "bookmarks",
+    "<all_urls>"
+  ],
+  "background" : {
+    "scripts": [
+			"background.js"
+		]
+  },
+	"commands": {
+		"open-command-ui": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+Space"
+			},
+			"description": "Open the command UI."
+		}
+	}
+}
