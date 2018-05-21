@@ -112,6 +112,7 @@ function findMatchingCommands(text) {
     // 1. typed string is anywhere in a command name
     // 2. command name is at beginning of typed string
     //    (eg: for command input - "weather san diego")
+    console.log('testing option...', state.commands[i])
     if (state.commands[i].toLowerCase().indexOf(state.typed.toLowerCase()) != -1 ||
         state.typed.toLowerCase().indexOf(state.commands[i].toLowerCase()) === 0) {
       matches.push(state.commands[i]);
@@ -138,6 +139,8 @@ function updateMatchFeedback(typed, name) {
 }
 
 function updateMatchCount(name) {
+  if (!state.matchCounts[name]);
+    state.matchCounts[name] = 0;
   state.matchCounts[name]++;
 }
 
@@ -204,7 +207,7 @@ async function onKeyup(e) {
       state.matchIndex = 0;
     }
     else {
-      console.log('no matches');
+      console.log('no matches for ', state.typed);
       update(state.typed);
     }
   }
@@ -284,7 +287,11 @@ function update(typed, completed) {
     str = typed;
   }
   let cmd = document.querySelector('#input');
-  cmd.innerHTML = str
+  let parser = new DOMParser();
+  let doc = parser.parseFromString(str, 'text/html');
+  if (cmd.children.length)
+    cmd.removeChild(cmd.children[0]);
+  cmd.appendChild(doc.firstElementChild);
 }
 
 // completed, typed

@@ -20,6 +20,7 @@ function setup() {
     let port = browser.tabs.connect(tabs[0].id);
 
     let names = Object.keys(commands);
+    console.log('sending commands', names);
 
     // Send command list
     port.postMessage({ commands: names });
@@ -55,7 +56,7 @@ function refreshCommandSource(cmdSrc) {
 }
 
 function initializeCommandSources() {
-  loadBookmarklets();
+  sourceBookmarklets();
 
   /*
   var modules = [
@@ -85,7 +86,7 @@ function initializeCommandSources() {
   */
 }
 
-async function loadBookmarklets() {
+async function sourceBookmarklets() {
   // add bookmarklets as commands
   let bmarklets = await browser.bookmarks.search({ query: 'javascript:'} );
   let b = bmarklets[0];
@@ -94,7 +95,7 @@ async function loadBookmarklets() {
       name: b.title,
       async execute() {
         let tabs = await browser.tabs.query({active:true});
-        browser.tabs.executeScript(tabs.id, {
+        browser.tabs.executeScript(tabs[0].id, {
           code: b.url.replace('javascript:', '')
         });
       }
