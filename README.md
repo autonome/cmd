@@ -1,9 +1,6 @@
 # Cmd - Quick command execution for browsers
 
-Cmd allows you to quickly execute Firefox's built-in commands via a  small keyboard-activated panel.
-While many of the browser commands might have  keyboard shortcuts, I often do not remember them. Now I don't have to.  
-This add-on allows me to just type the first few characters and hit  enter. 
-This add-on does not require a browser restart.
+Cmd allows you to quickly execute commands via a small keyboard-activated panel.
 
 [Install for Firefox](https://addons.mozilla.org/en-US/firefox/addon/cmd/)
 
