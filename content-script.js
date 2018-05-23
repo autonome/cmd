@@ -45,7 +45,7 @@ async function render() {
   let container = document.createElement('div');
   container.id = 'cmdContainer';
   await css(container, {
-    position: 'absolute',
+    position: 'fixed',
     zIndex: 9999,
     top: 0, left: 0,
     height: '100%', width: '100%',
@@ -74,7 +74,7 @@ async function render() {
   let input = document.createElement('div');
   input.id = 'input';
   await css(input, {
-    color: '#6E6E6E',
+    color: '#FF0080', //'#6E6E6E',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     fontSize: '2rem'
@@ -85,6 +85,9 @@ async function render() {
 
   // add event listeners
   document.addEventListener('keyup', onKeyup, false);
+
+  // TODO: fixme
+  input.focus();
 }
 
 render();
@@ -159,16 +162,20 @@ async function onKeyup(e) {
     return;
   }
 
-  console.log('onKeyup', e.key, e.which, hasModifier(e))
+  console.log('onKeyup', e.key, e.which)
+  console.log('hasModifier', hasModifier(e), 'isModifier', isModifier(e), 'isIgnorable', isIgnorable(e));
+
   e.preventDefault();
-  
+
   // if user pressed escape, go away
   if (e.key == 'Escape' && !hasModifier(e)) {
+    console.log('onKeyUp: escape!');
     shutdown();
   }
 
   // if user pressed return, attempt to execute command
   else if (e.key == 'Enter' && !hasModifier(e)) {
+    console.log('onKeyUp: enter!', state.typed);
     let name = state.matches[state.matchIndex];
     if (state.commands.indexOf(name) > -1) {
       shutdown();
@@ -214,11 +221,13 @@ async function onKeyup(e) {
 
   // if up arrow and currently visible command is not first, select one previous
   else if (e.key == 'ArrowUp' && state.matchIndex) {
+    console.log('onKeyUp: arrow up!');
     update(state.typed, state.matches[--state.matchIndex]);
   }
 
   // if down arrow and there are more matches, select the next one
   else if (e.key == 'ArrowDown' && state.matchIndex + 1 < state.matches.length) {
+    console.log('onKeyUp: arrow down!');
     update(state.typed, state.matches[++state.matchIndex]);
   }
 
@@ -229,7 +238,8 @@ async function onKeyup(e) {
   // autocomplete to the matched command
   // which allows easy adding onto a command name
   // without having to type all the same visible text
-  else if (e.key == 'Tab') {
+  else if (e.key == 'Tab' && state.matches) {
+    console.log('onKeyUp: tab!');
     state.typed = state.matches[state.matchIndex]
     update(state.typed, state.matches[state.matchIndex]);
     //if (e.shiftKey && matchIndex)
@@ -240,7 +250,7 @@ async function onKeyup(e) {
 }
 
 function hasModifier(e) {
-  return e.altKey || e.ctrlKey || e.shiftKey || e.metaKey
+  return e.altKey || e.ctrlKey || e.metaKey;
 }
 
 function isModifier(e) {
@@ -249,17 +259,17 @@ function isModifier(e) {
 
 function isIgnorable(e) {
   switch(e.which) {
-    case 38: //up arrow  
-    case 40: //down arrow 
-    case 37: //left arrow 
-    case 39: //right arrow 
-    case 33: //page up  
-    case 34: //page down  
-    case 36: //home  
-    case 35: //end                  
-    case 13: //enter  
-    case 9:  //tab  
-    case 27: //esc  
+    case 38: //up arrow
+    case 40: //down arrow
+    case 37: //left arrow
+    case 39: //right arrow
+    case 33: //page up
+    case 34: //page down
+    case 36: //home
+    case 35: //end
+    case 13: //enter
+    case 9:  //tab
+    case 27: //esc
     case 16: //shift  
     case 17: //ctrl  
     case 18: //alt  
@@ -278,9 +288,10 @@ function isIgnorable(e) {
 }
 
 function update(typed, completed) {
+  console.log('update', typed, completed);
   let str = ''
   if (completed) {
-    str = generateUnderlined(completed, typed);
+    str = generateUnderlined(typed, completed);
   }
   // no match
   else if (typed) {
@@ -295,34 +306,49 @@ function update(typed, completed) {
 }
 
 // completed, typed
-function generateUnderlined(wholeString, subString) {
+function generateUnderlined(typed, match) {
+  console.log('generateUnderlined', typed, match);
   // user already matched a commmand and added params
-  if (subString.length > wholeString.length &&
-      subString.indexOf(wholeString) === 0) {
-    return subString;
+  /*
+  if (match.length > typed.length &&
+      match.indexOf(typed) === 0) {
+    return match;
   }
-  var startIndex = wholeString.toLowerCase().indexOf(subString.toLowerCase());
-  var endIndex = startIndex + subString.length;
+  */
+
+  var startIndex = typed.toLowerCase().indexOf(match.toLowerCase());
+  if (startIndex == -1 && match) {
+    startIndex = match.toLowerCase().indexOf(typed.toLowerCase());
+    if (startIndex == -1) {
+      return typed;
+    }
+  }
+  var endIndex = startIndex + match.length;
+  console.log('startIndex', startIndex, 'endIndex', endIndex);
   var str = ''
+
   // substring is empty
-  if (!subString) {
-    str = '<span>' + wholeString + '</span>'
+  if (!match) {
+    str = '<span>' + typed + '</span>'
   }
   // occurs at beginning
   else if (startIndex === 0) {
-    str = '<span style="text-decoration: underline;">' + subString + '</span>' + 
-          '<span style="color: #6E6E6E;">' + wholeString.substring(subString.length) + '</span>';
+    console.log('start');
+    str = '<span style="text-decoration: underline;">' + match + '</span>' +
+          '<span style="color: #6E6E6E;">' + typed.substring(match.length) + '</span>';
   }
   // occurs in middle
-  else if (endIndex != wholeString.length) {
-    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
-          "<span class='typed'>" + wholeString.substring(startIndex, startIndex + subString.length) + "</span>" +
-          "<span class='completed'>" + wholeString.substring(endIndex) + "</span>";
+  else if (endIndex != typed.length) {
+    console.log('middle');
+    str = "<span class='completed'>" + typed.substring(0, startIndex) + "</span>" +
+          "<span class='typed'>" + typed.substring(startIndex, startIndex + match.length) + "</span>"
+          "<span class='completed'>" + typed.substring(endIndex) + "</span>";
   }
   // occurs at the end
   else {
-    str = "<span class='completed'>" + wholeString.substring(0, startIndex) + "</span>" + 
-          "<span class='typed'>" + subString + "</span>";
+    console.log('end');
+    str = "<span class='completed'>" + typed.substring(0, startIndex) + "</span>" +
+          "<span class='typed'>" + match + "</span>";
   }
   return str;
 }

@@ -10,6 +10,7 @@
     }
   },
   "permissions": [
+    "tabs",
     "activeTab",
     "bookmarks",
     "<all_urls>"

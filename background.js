@@ -28,7 +28,7 @@ function setup() {
     port.onMessage.addListener(msg => {
       if (msg.action && msg.action == 'execute') {
         if (commands[msg.name]) {
-          commands[msg.name].execute();
+          commands[msg.name].execute(msg);
         }
       }
     });
@@ -57,6 +57,8 @@ function refreshCommandSource(cmdSrc) {
 
 function initializeCommandSources() {
   sourceBookmarklets();
+  sourceBookmark();
+  sourceEmail();
 
   /*
   var modules = [
@@ -101,6 +103,36 @@ async function sourceBookmarklets() {
       }
     };
   }).forEach(addCommand);
+}
+
+async function sourceBookmark() {
+  addCommand({
+    name: 'bookmark current page',
+    async execute() {
+      let tab = await browser.tabs.query({active:true});
+      let node = await browser.bookmarks.create({
+        title: tab[0].title,
+        url: tab[0].url
+      });
+    }
+  });
+}
+
+async function sourceEmail() {
+  addCommand({
+    name: 'email page to',
+    async execute(msg) {
+      let tabs = await browser.tabs.query({active:true});
+      let email = msg.typed.replace(msg.name, '').trim();
+      let url =
+        'mailto:' + email +
+        '?subject=Web%20page!&body=' +
+        encodeURIComponent(tabs[0].title) +
+        '%0D%0A' +
+        encodeURIComponent(tabs[0].url);
+      tabs[0].url = url;
+    }
+  });
 }
 
 })();

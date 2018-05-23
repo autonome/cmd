@@ -12,7 +12,7 @@ NOTES:
 
 ## Usage and features:
 
-* Launch cmd with control+shift+; (cmd+shift+; on Mac) 
+* Launch with control/command+shift+space.
 * Start typing to see matching commands.
 * Hit the tab key to cycle through multiple matches (shift+tab to cycle  backwards). Example: type "pre" and hit tab a bunch of times.
 * Hit enter to select the current match.
@@ -21,10 +21,19 @@ NOTES:
 * Sorting: Results are sorted by the number of times you've selected that result.
 * Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").
 
-TODO:
+## Log
 
-* Add other basic built-ins like "bookmark"
-* Define command syntax
+### Next version (iow, done but not on AMO yet)
+
+* Add other basic built-ins like "bookmark", "email page to"
+
+## TODO
+
+* Why no work on Github?
+* Document existing commands
+* Fix underlining
+* Define and document command syntax
+* Remote commands (via manifest?)
 * Add basic web page commands like Ubiquity's built-ins
 * Map the path to Ubiquity preview panels
 * Add command chaining
