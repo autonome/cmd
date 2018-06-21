@@ -30,9 +30,11 @@ NOTES:
 ## TODO
 
 * Why no work on Github?
-* Document existing commands
-* Fix underlining
+* Fix underlining - define behavior, what should be underlined?
+* gdocs cmds
+* Share cmds (urls)
 * Define and document command syntax
+* Document existing commands
 * Remote commands (via manifest?)
 * Add basic web page commands like Ubiquity's built-ins
 * Map the path to Ubiquity preview panels

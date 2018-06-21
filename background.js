@@ -46,46 +46,12 @@ function addCommand(command) {
   commands[command.name] = command;
 }
 
-function refreshCommandSource(cmdSrc) {
-  cmdSrc.commands.then(function(commands) {
-    commands.forEach(addCommand)
-    updateCommandUI()
-  }, function(err) {
-    console.error('Error getting commands for module', err)
-  })
-}
-
 function initializeCommandSources() {
   sourceBookmarklets();
   sourceBookmark();
   sourceEmail();
-
-  /*
-  var modules = [
-    // Commands to activate a bookmarklet on the current page
-    require('./commands_bookmarklets'),
-    // All menu commands from Firefox
-    require('./commands_firefox'),
-    // Commands to create new Google doc or spreadsheet
-    require('./commands_gdocs'),
-    // commands to activate named groups and moved the
-    // Active tab to a named group
-    require('./commands_groups'),
-    // Session management
-    require('./commands_sessions')
-  ];
-
-  // Add commands from each source
-  modules.forEach(refreshCommandSource);
-
-  // Listen for command updates from each source
-  modules.forEach(function(src) {
-    src.on('commands', function(commands) {
-      commands.forEach(addCommand);
-      updateCommandUI();
-    });
-  });
-  */
+  sourceGoogleDocs();
+  sourceSendToWindow();
 }
 
 async function sourceBookmarklets() {
@@ -132,6 +98,41 @@ async function sourceEmail() {
         encodeURIComponent(tabs[0].url);
       tabs[0].url = url;
     }
+  });
+}
+
+async function sourceGoogleDocs() {
+  [
+    {
+      cmd: 'New Google doc',
+      url: 'http://docs.google.com/document/create?hl=en'
+    },
+    {
+      cmd: 'New Google sheet',
+      url: 'http://spreadsheets.google.com/ccc?new&hl=en'
+    }
+  ].forEach(function(doc) {
+    addCommand({
+      name: doc.cmd,
+      async execute(msg) {
+        await browser.tabs.create({
+          url: doc.url
+        });
+      }
+    });
+  });
+}
+
+async function sourceSendToWindow() {
+  const windows = await browser.windows.getAll({windowTypes: ['normal']});
+  windows.forEach((w) => {
+    addCommand({
+      name: 'Send to window - ' + w.title,
+      async execute(msg) {
+        const activeTabs = await browser.tabs.query({active: true});
+        browser.tabs.move(activeTabs[0].id, {windowId: w.id, index: -1});
+      }
+    });
   });
 }
 
