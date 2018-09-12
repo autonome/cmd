@@ -1,13 +1,22 @@
 /*
  
 TODO: NOW
+* fix style
+* listen for click events, focus events, and close UI
 * store state data in add-on, not localStorage
+
+TODO: NEXT
+* move tab to window command
+* switch to window command
+* add to Pocket command
+* command suggestions (listed below - eg, see windows)
 
 TODO: FUTURE
 * remember last-executed command across restarts
 * sessions
 * configurable shortcut
 * better visual fix for overflow text
+* commands that identify things in the page and act on them (locations, events, people)
 
 */
 
@@ -36,14 +45,18 @@ browser.runtime.onConnect.addListener(function(port) {
 });
 
 async function render() {
-  let old = document.querySelector('#cmdContainer');
+  let old = document.querySelector('#cmdContainer.cmdExtension');
   if (old) {
-    return;
+    shutdown();
   }
 
   // Outermost invisible container
+  // Full page height and width
   let container = document.createElement('div');
   container.id = 'cmdContainer';
+  container.setAttribute('style', 'all: initial;');
+  //container.style.all = 'revert';
+  container.classList.add('cmdExtension');
   await css(container, {
     position: 'fixed',
     zIndex: 9999,
@@ -52,16 +65,18 @@ async function render() {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontFamily: '"Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif'
   });
 
   // Visible container
   let cmd = document.createElement('div');
   cmd.id = 'cmd';
+  //cmd.setAttribute('style', 'all: initial;');
+  cmd.classList.add('cmdExtension');
   await css(cmd, {
     height: '3rem',
     width: '30rem',
-    lineHeight: '3rem',
+    backgroundColor: 'yellow',
+    marginTop: '-10rem',
     backgroundColor: 'yellow',
     paddingLeft: '1rem',
     paddingRight: '1rem',
@@ -73,10 +88,31 @@ async function render() {
   // Where text is shown
   let input = document.createElement('div');
   input.id = 'input';
-  await css(input, {
-    color: '#FF0080', //'#6E6E6E',
+  //input.setAttribute('style', 'all: initial;');
+  let props = {
+    height: '3rem',
+    width: '100%',
+    backgroundColor: 'yellow',
+    lineHeight: '2rem',
+    color: 'pink',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+    fontSize: '2rem'
+  };
+  let str = Object.keys(props).map(key=>key + ':"' + props[key] + '"').join(';');
+  input.setAttribute('style', str);
+  input.classList.add('cmdExtension');
+  await css(input, {
+    all: 'initial',
+    height: '3rem',
+    width: '100%',
+    backgroundColor: 'yellow',
+    lineHeight: '2rem',
+    color: 'pink',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
     fontSize: '2rem'
   });
   cmd.appendChild(input);
@@ -84,16 +120,17 @@ async function render() {
   document.body.appendChild(container);
 
   // add event listeners
-  document.addEventListener('keyup', onKeyup, false);
-
-  // TODO: fixme
-  input.focus();
+  document.addEventListener('keyup', onKeyup, true);
+  document.addEventListener('keypress', onKeyDummyStop, true);
+  document.addEventListener('keydown', onKeyDummyStop, true);
+  document.addEventListener('input', onKeyDummyStop, true);
 }
 
 render();
 
 async function css(el, props) {
   Object.keys(props).forEach(p => el.style[p] = props[p]);
+  //Object.keys(props).forEach(p => el.style.setProperty(p, props[p], 'important'));
 }
 
 function execute(name, typed) {
@@ -105,7 +142,8 @@ function execute(name, typed) {
 }
 
 function findMatchingCommands(text) {
-  console.log('findMatchingCommands', text, state.commands);
+  const r = true;
+  r || console.log('findMatchingCommands', text, state.commands);
   var count = state.commands.length,
       matches = [];
 
@@ -115,7 +153,7 @@ function findMatchingCommands(text) {
     // 1. typed string is anywhere in a command name
     // 2. command name is at beginning of typed string
     //    (eg: for command input - "weather san diego")
-    console.log('testing option...', state.commands[i])
+    r || console.log('testing option...', state.commands[i])
     if (state.commands[i].toLowerCase().indexOf(state.typed.toLowerCase()) != -1 ||
         state.typed.toLowerCase().indexOf(state.commands[i].toLowerCase()) === 0) {
       matches.push(state.commands[i]);
@@ -148,34 +186,43 @@ function updateMatchCount(name) {
 }
 
 async function shutdown() {
-  console.log('shutdown');
-  let container = document.querySelector('#cmdContainer');
+  console.log('content-script shutdown');
+  let container = document.querySelector('#cmdContainer.cmdExtension');
   if (container) {
     document.body.removeChild(container);
   }
   document.removeEventListener('keyup', onKeyup);
+  document.removeEventListener('keypress', onKeyDummyStop);
+  document.removeEventListener('keydown', onKeyDummyStop);
+  document.removeEventListener('input', onKeyDummyStop);
+}
+
+function onKeyDummyStop(e) {
+  e.preventDefault();
 }
 
 async function onKeyup(e) {
+  const r = true;
+  e.preventDefault();
 
   if (isModifier(e)) {
     return;
   }
 
-  console.log('onKeyup', e.key, e.which)
-  console.log('hasModifier', hasModifier(e), 'isModifier', isModifier(e), 'isIgnorable', isIgnorable(e));
+  r || console.log('onKeyup', e.key, e.which)
+  r || console.log('hasModifier', hasModifier(e), 'isModifier', isModifier(e), 'isIgnorable', isIgnorable(e));
 
   e.preventDefault();
 
   // if user pressed escape, go away
   if (e.key == 'Escape' && !hasModifier(e)) {
-    console.log('onKeyUp: escape!');
+    r || console.log('onKeyUp: escape!');
     shutdown();
   }
 
   // if user pressed return, attempt to execute command
   else if (e.key == 'Enter' && !hasModifier(e)) {
-    console.log('onKeyUp: enter!', state.typed);
+    r || console.log('onKeyUp: enter!', state.typed);
     let name = state.matches[state.matchIndex];
     if (state.commands.indexOf(name) > -1) {
       shutdown();
@@ -190,44 +237,44 @@ async function onKeyup(e) {
   // attempt to complete typed characters to a command
   // or do other modifications based on user typed keys
   else if (!hasModifier(e) && !isModifier(e) && !isIgnorable(e)) {
-    console.log('LEGIT... no modifier, is not a modifier and not ignorable')
+    r || console.log('LEGIT... no modifier, is not a modifier and not ignorable')
 
     // correct on backspace
     if (e.key == 'Backspace') {
-      console.log('back', state.typed);
+      r || console.log('back', state.typed);
       if (state.typed.length > 0) {
-        console.log('back, no typed tho');
+        r || console.log('back, no typed tho');
         state.typed = state.typed.substring(0, state.typed.length - 1);
       }
     }
     // otherwise add typed character to buffer
     else {
-      console.log('updating', e.key);
+      r || console.log('updating', e.key);
       state.typed += e.key
     }
 
     // search, and update UI
     state.matches = findMatchingCommands(state.typed);
     if (state.matches.length) {
-      console.log('matches!', state.matches);
+      r || console.log('matches!', state.matches);
       update(state.typed, state.matches[0]);
       state.matchIndex = 0;
     }
     else {
-      console.log('no matches for ', state.typed);
+      r || console.log('no matches for ', state.typed);
       update(state.typed);
     }
   }
 
   // if up arrow and currently visible command is not first, select one previous
   else if (e.key == 'ArrowUp' && state.matchIndex) {
-    console.log('onKeyUp: arrow up!');
+    r || console.log('onKeyUp: arrow up!');
     update(state.typed, state.matches[--state.matchIndex]);
   }
 
   // if down arrow and there are more matches, select the next one
   else if (e.key == 'ArrowDown' && state.matchIndex + 1 < state.matches.length) {
-    console.log('onKeyUp: arrow down!');
+    r || console.log('onKeyUp: arrow down!');
     update(state.typed, state.matches[++state.matchIndex]);
   }
 
@@ -239,7 +286,7 @@ async function onKeyup(e) {
   // which allows easy adding onto a command name
   // without having to type all the same visible text
   else if (e.key == 'Tab' && state.matches) {
-    console.log('onKeyUp: tab!');
+    r || console.log('onKeyUp: tab!');
     state.typed = state.matches[state.matchIndex]
     update(state.typed, state.matches[state.matchIndex]);
     //if (e.shiftKey && matchIndex)
@@ -288,7 +335,8 @@ function isIgnorable(e) {
 }
 
 function update(typed, completed) {
-  console.log('update', typed, completed);
+  const r = true;
+  r || console.log('update', typed, completed);
   let str = ''
   if (completed) {
     str = generateUnderlined(typed, completed);
@@ -297,17 +345,19 @@ function update(typed, completed) {
   else if (typed) {
     str = typed;
   }
-  let cmd = document.querySelector('#input');
   let parser = new DOMParser();
   let doc = parser.parseFromString(str, 'text/html');
-  if (cmd.children.length)
-    cmd.removeChild(cmd.children[0]);
-  cmd.appendChild(doc.firstElementChild);
+
+  let input = document.querySelector('#input.cmdExtension');
+  if (input.firstElementChild)
+    input.removeChild(input.firstElementChild);
+  input.appendChild(doc.firstElementChild);
 }
 
 // completed, typed
 function generateUnderlined(typed, match) {
-  console.log('generateUnderlined', typed, match);
+  const r = true;
+  r || console.log('generateUnderlined', typed, match);
   // user already matched a commmand and added params
   /*
   if (match.length > typed.length &&
@@ -333,20 +383,20 @@ function generateUnderlined(typed, match) {
   }
   // occurs at beginning
   else if (startIndex === 0) {
-    console.log('start');
+    r || console.log('start');
     str = '<span style="text-decoration: underline;">' + match + '</span>' +
           '<span style="color: #6E6E6E;">' + typed.substring(match.length) + '</span>';
   }
   // occurs in middle
   else if (endIndex != typed.length) {
-    console.log('middle');
+    r || console.log('middle');
     str = "<span class='completed'>" + typed.substring(0, startIndex) + "</span>" +
           "<span class='typed'>" + typed.substring(startIndex, startIndex + match.length) + "</span>"
           "<span class='completed'>" + typed.substring(endIndex) + "</span>";
   }
   // occurs at the end
   else {
-    console.log('end');
+    r || console.log('end');
     str = "<span class='completed'>" + typed.substring(0, startIndex) + "</span>" +
           "<span class='typed'>" + match + "</span>";
   }

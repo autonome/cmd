@@ -28,6 +28,7 @@ function setup() {
     port.onMessage.addListener(msg => {
       if (msg.action && msg.action == 'execute') {
         if (commands[msg.name]) {
+          console.log('background:execute()', msg);
           commands[msg.name].execute(msg);
         }
       }
@@ -124,10 +125,11 @@ async function sourceGoogleDocs() {
 }
 
 async function sourceSendToWindow() {
+  const cmdPrefix = 'Move to window: ';
   const windows = await browser.windows.getAll({windowTypes: ['normal']});
   windows.forEach((w) => {
     addCommand({
-      name: 'Send to window - ' + w.title,
+      name: cmdPrefix + w.title,
       async execute(msg) {
         const activeTabs = await browser.tabs.query({active: true});
         browser.tabs.move(activeTabs[0].id, {windowId: w.id, index: -1});
