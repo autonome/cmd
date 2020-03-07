@@ -1,15 +1,21 @@
 (async () => {
 
+const DEBUG = 1;
+
+dbg('BACKGROUND INIT');
+
 let commands = {};
 
 browser.commands.onCommand.addListener(function(command) {
+  dbg('bg: command...', command);
   if (command == "open-command-ui") {
+    dbg('bg: open-command-ui');
     initializeCommandSources();
     setup();
   }
 });
 
-function setup() {
+async function setup() {
   // Add content script to active tab
   browser.tabs.executeScript({
     file: 'content-script.js'
@@ -20,15 +26,15 @@ function setup() {
     let port = browser.tabs.connect(tabs[0].id);
 
     let names = Object.keys(commands);
-    console.log('sending commands', names);
+    dbg('sending commands', names);
 
     // Send command list
-    port.postMessage({ commands: names });
+    port.postMessage({ "commands": names });
 
     port.onMessage.addListener(msg => {
       if (msg.action && msg.action == 'execute') {
         if (commands[msg.name]) {
-          console.log('background:execute()', msg);
+          dbg('background:execute()', msg);
           commands[msg.name].execute(msg);
         }
       }
@@ -49,20 +55,21 @@ function addCommand(command) {
 
 function initializeCommandSources() {
   sourceBookmarklets();
-  sourceBookmark();
-  sourceEmail();
-  sourceGoogleDocs();
-  sourceSendToWindow();
+  //sourceBookmark();
+  //sourceEmail();
+  //sourceGoogleDocs();
+  //sourceSendToWindow();
 }
 
 async function sourceBookmarklets() {
   // add bookmarklets as commands
   let bmarklets = await browser.bookmarks.search({ query: 'javascript:'} );
-  let b = bmarklets[0];
   bmarklets.map(b => {
     return {
       name: b.title,
-      async execute() {
+      async execute(cmd) {
+        //let tags = cmd.typed.split(' ').filter(w => w != cmd.name)
+        //console.log('tags', tags)
         let tabs = await browser.tabs.query({active:true});
         browser.tabs.executeScript(tabs[0].id, {
           code: b.url.replace('javascript:', '')
@@ -87,7 +94,7 @@ async function sourceBookmark() {
 
 async function sourceEmail() {
   addCommand({
-    name: 'email page to',
+    name: 'Email page to',
     async execute(msg) {
       let tabs = await browser.tabs.query({active:true});
       let email = msg.typed.replace(msg.name, '').trim();
@@ -136,6 +143,12 @@ async function sourceSendToWindow() {
       }
     });
   });
+}
+
+function dbg(...args) {
+  if (DEBUG == 1) {
+    console.log(...args)
+  }
 }
 
 })();

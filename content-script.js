@@ -45,69 +45,63 @@ browser.runtime.onConnect.addListener(function(port) {
 });
 
 async function render() {
-  let old = document.querySelector('#cmdContainer.cmdExtension');
+  let old = document.querySelector('#cmdContainer');
   if (old) {
-    shutdown();
+    await shutdown();
   }
 
   // Outermost invisible container
   // Full page height and width
   let container = document.createElement('div');
   container.id = 'cmdContainer';
+  container.classList.add('cmdContainer');
+
   container.setAttribute('style', 'all: initial;');
   //container.style.all = 'revert';
-  container.classList.add('cmdExtension');
+
   await css(container, {
-    position: 'fixed',
-    zIndex: 9999,
+    position: 'absolute',
+    zIndex: 99999,
     top: 0, left: 0,
-    height: '100%', width: '100%',
+    height: '100%',
+    width: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   });
 
   // Visible container
-  let cmd = document.createElement('div');
-  cmd.id = 'cmd';
-  //cmd.setAttribute('style', 'all: initial;');
-  cmd.classList.add('cmdExtension');
-  await css(cmd, {
+  let panel = document.createElement('div');
+  panel.id = 'cmdPanel';
+  panel.classList.add('cmdPanel');
+  panel.setAttribute('style', 'all: initial;');
+
+  await css(panel, {
     height: '3rem',
     width: '30rem',
-    backgroundColor: 'yellow',
     marginTop: '-10rem',
     backgroundColor: 'yellow',
+    fontSize: '50px',
     paddingLeft: '1rem',
     paddingRight: '1rem',
     borderRadius: '0.2rem',
     filter: 'drop-shadow(0.2rem 0.2rem 0.2rem silver)'
   });
-  container.appendChild(cmd);
+
+  container.appendChild(panel);
 
   // Where text is shown
   let input = document.createElement('div');
-  input.id = 'input';
+  input.id = 'cmdInput';
   //input.setAttribute('style', 'all: initial;');
-  let props = {
-    height: '3rem',
-    width: '100%',
-    backgroundColor: 'yellow',
-    lineHeight: '2rem',
-    color: 'pink',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
-    fontSize: '2rem'
-  };
-  let str = Object.keys(props).map(key=>key + ':"' + props[key] + '"').join(';');
-  input.setAttribute('style', str);
-  input.classList.add('cmdExtension');
+
+  input.setAttribute('style','background-color: red; font-size: 50px;');
+
+  /*
   await css(input, {
     all: 'initial',
     height: '3rem',
     width: '100%',
-    backgroundColor: 'yellow',
     lineHeight: '2rem',
     color: 'pink',
     overflow: 'hidden',
@@ -115,7 +109,9 @@ async function render() {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
     fontSize: '2rem'
   });
-  cmd.appendChild(input);
+  */
+
+  panel.appendChild(input);
 
   document.body.appendChild(container);
 
@@ -130,7 +126,6 @@ render();
 
 async function css(el, props) {
   Object.keys(props).forEach(p => el.style[p] = props[p]);
-  //Object.keys(props).forEach(p => el.style.setProperty(p, props[p], 'important'));
 }
 
 function execute(name, typed) {
@@ -186,15 +181,15 @@ function updateMatchCount(name) {
 }
 
 async function shutdown() {
-  console.log('content-script shutdown');
-  let container = document.querySelector('#cmdContainer.cmdExtension');
+  let container = document.querySelector('#cmdContainer');
   if (container) {
     document.body.removeChild(container);
   }
-  document.removeEventListener('keyup', onKeyup);
-  document.removeEventListener('keypress', onKeyDummyStop);
-  document.removeEventListener('keydown', onKeyDummyStop);
-  document.removeEventListener('input', onKeyDummyStop);
+  document.removeEventListener('keyup', onKeyup, true);
+  document.removeEventListener('keypress', onKeyDummyStop, true);
+  document.removeEventListener('keydown', onKeyDummyStop, true);
+  document.removeEventListener('input', onKeyDummyStop, true);
+  console.log('content-script shutdown complete');
 }
 
 function onKeyDummyStop(e) {
@@ -217,7 +212,7 @@ async function onKeyup(e) {
   // if user pressed escape, go away
   if (e.key == 'Escape' && !hasModifier(e)) {
     r || console.log('onKeyUp: escape!');
-    shutdown();
+    await shutdown();
   }
 
   // if user pressed return, attempt to execute command
@@ -225,7 +220,7 @@ async function onKeyup(e) {
     r || console.log('onKeyUp: enter!', state.typed);
     let name = state.matches[state.matchIndex];
     if (state.commands.indexOf(name) > -1) {
-      shutdown();
+      await shutdown();
       execute(name, state.typed);
       state.lastExecuted = name;
       updateMatchCount(name);
@@ -348,8 +343,8 @@ function update(typed, completed) {
   let parser = new DOMParser();
   let doc = parser.parseFromString(str, 'text/html');
 
-  let input = document.querySelector('#input.cmdExtension');
-  if (input.firstElementChild)
+  let input = document.querySelector('#cmdInput');
+  if (input && input.firstElementChild)
     input.removeChild(input.firstElementChild);
   input.appendChild(doc.firstElementChild);
 }
