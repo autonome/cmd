@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "sparklets",
+  "description": "Execute bookmarklets from your keyboard. Also, sparkles.",
+  "author": "Dietrich Ayala",
+  "version": "0.0.1",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "bookmarks",
+    "<all_urls>"
+  ],
+  "background" : {
+    "scripts": [
+			"background.js"
+		]
+  },
+	"commands": {
+		"open-command-ui": {
+			"suggested_key": {
+				"default": "MacCtrl+Alt+Space"
+			},
+			"description": "Open the tagging UI."
+		}
+	}
+}
