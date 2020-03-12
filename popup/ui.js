@@ -2,6 +2,8 @@
  
 TODO: NOW
 * store state data in add-on, not localStorage
+* placeholder text
+* fix default command
 
 TODO: NEXT
 * command suggestions (listed below - eg, see windows)
@@ -71,6 +73,8 @@ async function render() {
 
   document.body.appendChild(panel);
 
+  updateInputUI('Start typing...')
+
   // add event listeners
   document.addEventListener('keyup', onKeyup, true);
   document.addEventListener('keypress', onKeyDummyStop, true);
@@ -84,10 +88,15 @@ async function css(el, props) {
   Object.keys(props).forEach(p => el.style[p] = props[p]);
 }
 
-function execute(name, typed) {
+async function execute(name, typed) {
   if (state.commands[name]) {
-    //console.log('popup:execute()', name, typed);
+    // execute command
     state.commands[name].execute({typed});
+    // close cmd popup
+    // NOTE: this kills command execution
+    // hrghhh, gotta turn execution completion promise
+    // or run em async in background script
+    setTimeout(shutdown, 100)
   }
 }
 
@@ -149,7 +158,7 @@ async function shutdown() {
   document.removeEventListener('keydown', onKeyDummyStop, true);
   document.removeEventListener('input', onKeyDummyStop, true);
   */
-  console.log('ui shutdown complete');
+  //console.log('ui shutdown complete');
 }
 
 function onKeyDummyStop(e) {
@@ -302,6 +311,7 @@ function updateInputUI(typed, completed) {
   else if (typed) {
     str = typed;
   }
+
   let parser = new DOMParser();
   let doc = parser.parseFromString(str, 'text/html');
 
@@ -309,6 +319,15 @@ function updateInputUI(typed, completed) {
   if (input && input.firstElementChild)
     input.removeChild(input.firstElementChild);
   input.appendChild(doc.firstElementChild);
+
+  /*
+  let parent = input.parentNode;
+  state.matches.forEach(match => {
+    let node = document.createElement('div')
+    node.innerText = match
+    parent.appendChild(node)
+  });
+  */
 }
 
 // typed text, inline matching suggestion

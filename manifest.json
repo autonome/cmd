@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "cmd-ui",
-  "description": "Generic inline command UI.",
+  "name": "cmd",
+  "description": "GCLI for Firefox.",
   "author": "Dietrich Ayala",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "applications": {
     "gecko": {
       "id": "jid0-IwGwzPi3AqlZLfHV1nfcQbYQj6E@jetpack"
@@ -20,7 +20,7 @@
 	"commands": {
 		"_execute_browser_action": {
 			"suggested_key": {
-				"default": "Ctrl+Shift+Comma"
+				"default": "Ctrl+Shift+Space"
 			},
 			"description": "Open the cmd UI."
 		}

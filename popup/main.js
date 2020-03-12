@@ -33,7 +33,7 @@ function initializeCommandSources() {
   dbg('initializeCommandSources');
   sourceBookmarklets();
   sourceBookmark();
-  sourceEmail();
+  //sourceEmail();
   sourceGoogleDocs();
   sourceSendToWindow();
   sourceSwitchToWindow();
@@ -73,6 +73,7 @@ async function sourceBookmark() {
   });
 }
 
+// FIXME
 async function sourceEmail() {
   addCommand({
     name: 'Email page to',
@@ -168,9 +169,12 @@ async function sourceSwitchTabContainer() {
         async execute(msg) {
           const activeTabs = await browser.tabs.query({currentWindow: true, active: true});
           const tab = activeTabs[0];
+          // some risk of losing old tab if new tab was not created successfully
+          // but putting remove in creation was getting killed by window close
+          // so when execution is moved to background script, try moving this back
+          browser.tabs.remove(tab.id);
           browser.tabs.create({url: tab.url, cookieStoreId: identity.cookieStoreId, index: tab.index+1, pinned: tab.pinned }).then(() => {
-            // only remove old tab if new tab was created successfully
-            browser.tabs.remove(tab.id);
+            // tab remove should be here
           });
         }
       });
