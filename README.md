@@ -39,3 +39,9 @@ NOTES:
 * Add basic web page commands like Ubiquity's built-ins
 * Map the path to Ubiquity preview panels
 * Add command chaining
+
+### Command: New container tab
+
+TODO
+* if clipboard has a url, automatically load it?
+

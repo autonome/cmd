@@ -10,12 +10,14 @@
     }
   },
   "permissions": [
-    "tabs",
+    "<all_urls>",
     "activeTab",
     "bookmarks",
     "contextualIdentities",
     "cookies",
-    "<all_urls>"
+    "notifications",
+    "storage",
+    "tabs"
   ],
 	"commands": {
 		"_execute_browser_action": {

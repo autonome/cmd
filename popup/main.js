@@ -1,6 +1,6 @@
 (async () => {
 
-const DEBUG = 0;
+const DEBUG = 1;
 
 dbg('POPUP INIT');
 
@@ -182,10 +182,55 @@ async function sourceSwitchTabContainer() {
   });
 }
 
+async function sourceNote() {
+  addCommand({
+    name: 'note',
+    async execute(msg) {
+      console.log('note execd', msg)
+      if (msg.typed.indexOf(' ')) {
+        let note = msg.typed.replace('note ', '');
+        await saveNewNote(note) 
+        notify('note saved!', note)
+      }
+    }
+  });
+
+  const STG_KEY = 'cmd:notes';
+  const STG_TYPE = 'local';
+
+  async function saveNewNote(note) {
+    let store = await browser.storage[STG_TYPE].get(STG_KEY)
+    console.log('store', store)
+    if (Object.keys(store).indexOf(STG_KEY) == -1) {
+      console.log('new store')
+      store = {
+        notes: []
+      }
+    }
+    else {
+      store = store[STG_KEY]
+    }
+    store.notes.push(note)
+
+    await browser.storage[STG_TYPE].set({ [STG_KEY] : store})
+    console.log('saved store', store);
+  }
+}
+await sourceNote()
+
 function dbg(...args) {
   if (DEBUG == 1) {
     console.log(...args)
   }
+}
+
+function notify(title, content) {
+  browser.notifications.create({
+    "type": "basic",
+    "iconUrl": browser.extension.getURL("images/icon.png"),
+    "title": title,
+    "message": content
+  });
 }
 
 })();

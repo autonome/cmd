@@ -1,23 +1,39 @@
 /*
  
 TODO: NOW
+* multistring search, eg "new pl" matches "new container tab: PL"
+* <tab> to move to next in list (figure out vs params, chaining, etc)
 * store state data in add-on, not localStorage
-* placeholder text
+* placeholder text not working in release
 * fix default command
+* move command execution to background script
 
 TODO: NEXT
 * command suggestions (listed below - eg, see windows)
 * command parameters
-* switch to window command, searching by title (named windows?)
-* modular commands
+* command screenshots (eg, switch to window)
+* command chaining
 
 TODO: FUTURE
 * remember last-executed command across restarts
-* sessions (?)
-* add to Pocket command
-* configurable shortcut
 * better visual fix for overflow text
 * commands that identify things in the page and act on them (locations, events, people)
+
+TODO: Settings
+* add settings to right corner
+* settings page
+* configurable shortcut
+
+TODO: Long running jobs
+* add support for long-running jobs
+* add support for "log in to <svc>"
+* add notifications to right corner
+
+TODO: Commands
+* switch to window command, searching by title (named windows?)
+* IPFS
+* Flickr
+* Pocket
 
 */
 
@@ -103,7 +119,8 @@ async function execute(name, typed) {
 function findMatchingCommands(text) {
   const r = true;
   r || console.log('findMatchingCommands', text, state.commands.length);
-  var count = state.commands.length,
+
+  let count = state.commands.length,
       matches = [];
 
   // Iterate over all commands, searching for matches
