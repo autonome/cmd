@@ -49,6 +49,10 @@ let state = {
   lastExecuted: '' // text last typed by user when last they hit return
 };
 
+let strings = {
+  defaultCmdText: 'Start typing...'
+}
+
 window.addEventListener('cmd-update-commands', function(e) {
   //console.log('ui received updated commands');
   state.commands = e.detail;
@@ -89,7 +93,7 @@ async function render() {
 
   document.body.appendChild(panel);
 
-  updateInputUI('Start typing...')
+  updateInputUI()
 
   // add event listeners
   document.addEventListener('keyup', onKeyup, true);
@@ -317,7 +321,7 @@ function isIgnorable(e) {
   }
 }
 
-function updateInputUI(typed, completed) {
+async function updateInputUI(typed, completed) {
   const r = true;
   r || console.log('updateInputUI', typed, completed);
   let str = ''
@@ -327,6 +331,13 @@ function updateInputUI(typed, completed) {
   // no match
   else if (typed) {
     str = typed;
+  }
+  else {
+    str = strings.defaultCmdText
+  }
+
+  if (typed) {
+    str += await generateSelectionText()
   }
 
   let parser = new DOMParser();
@@ -403,5 +414,27 @@ function generateUnderlined(typed, match) {
   }
   return str;
 }
+
+async function generateSelectionText() {
+  let selectedText = await getSelection()
+  let str = '';
+  if (selectedText.length > 0) {
+    str = ' <em alt="' + selectedText + '">selection</em>'
+  }
+  return str
+}
+
+async function getSelection() {
+	return await executeContentScript('getSelection')
+}
+
+async function executeContentScript(name) {
+	let tabs = await browser.tabs.query({ currentWindow: true, active: true })
+	let tab = tabs[0]
+	let path = '/content-scripts/' + name + '.js'
+	let results = await browser.tabs.executeScript(tab.id, {file: path})
+	return results[0]
+}
+
 
 })();
