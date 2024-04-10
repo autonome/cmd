@@ -1,6 +1,6 @@
 (async () => {
 
-const DEBUG = 1;
+const DEBUG = 0;
 
 dbg('POPUP INIT');
 
@@ -218,6 +218,25 @@ async function sourceNote() {
 }
 await sourceNote()
 
+async function sourceRottenTomatoes() {
+  addCommand({
+    name: 'rotten tomatoes',
+    async execute(msg) {
+      if (msg.typed.indexOf(' ')) {
+        let search = msg.typed.replace('rotten tomatoes ', '');
+				let rtURL = 'https://www.rottentomatoes.com/?search=' + search
+        await browser.tabs.create({
+          url: rtURL
+        });
+      }
+			else {
+				// help msg?
+			}
+    }
+  });
+}
+await sourceRottenTomatoes()
+
 function dbg(...args) {
   if (DEBUG == 1) {
     console.log(...args)
@@ -232,5 +251,15 @@ function notify(title, content) {
     "message": content
   });
 }
+
+/*
+let port = browser.tabs.connect(tab.id, {name:'popup'})
+console.log('p: port gotted')
+port.postMessage({cmd: 'getSelection'})
+console.log('p: msg posted')
+port.onMessage.addListener(msg => {
+	console.log('msg from content', msg)
+})
+*/
 
 })();
