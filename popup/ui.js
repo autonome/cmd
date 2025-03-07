@@ -1,7 +1,7 @@
 /*
  
 TODO: NOW
-* multistring search, eg "new pl" matches "new container tab: PL"
+* multistring search, eg "new mycontainer" matches "new container tab: mycontainer"
 * <tab> to move to next in list (figure out vs params, chaining, etc)
 * store state data in add-on, not localStorage
 * placeholder text not working in release
@@ -30,16 +30,14 @@ TODO: Long running jobs
 * add notifications to right corner
 
 TODO: Commands
-* switch to window command, searching by title (named windows?)
-* IPFS
-* Flickr
-* Pocket
+* switch to window command, searching by title (search on title of active tab?)
 
 */
 
 (async () => {
 
 let state = {
+  context: {}, // map of context information eg selection, microformats (for now)
   commands: [], // array of command names
   matches: [], // array of commands matching the typed text
   matchIndex: 0, // index of ???
@@ -48,6 +46,21 @@ let state = {
   typed: '', // text typed by user so far, if any
   lastExecuted: '' // text last typed by user when last they hit return
 };
+
+const getActiveTab = async () => {
+	const tabs = await browser.tabs.query({
+    currentWindow: true,
+    active: true
+  });
+	return tabs[0];
+};
+
+const tab = await getActiveTab();
+const port = browser.tabs.connect(tab.id, { name: 'cmd-popup' });
+port.onMessage.addListener(msg => {
+  console.log('bg.msg', msg);
+  Object.assign(state.context, msg);
+});
 
 const strings = {
   defaultCmdText: 'Start typing...'
@@ -108,10 +121,11 @@ async function css(el, props) {
   Object.keys(props).forEach(p => el.style[p] = props[p]);
 }
 
-async function execute(name, typed) {
+async function execute(name, context) {
+  console.log('execute', name, context);
   if (state.commands[name]) {
     // execute command
-    state.commands[name].execute({typed});
+    state.commands[name].execute(context);
     // close cmd popup
     // NOTE: this kills command execution
     // hrghhh, gotta turn execution completion promise
@@ -188,7 +202,7 @@ function onKeyDummyStop(e) {
 
 async function onKeyup(e) {
   // flag for logging
-  const r = true;
+  const r = false;
 
   e.preventDefault();
 
@@ -213,7 +227,16 @@ async function onKeyup(e) {
     const name = state.matches[state.matchIndex];
     if (Object.keys(state.commands).indexOf(name) > -1) {
       //await shutdown();
-      execute(name, state.typed);
+      const parts = state.typed.trim().split(name).map(s => s.trim());
+      const search = parts.length > 1 ? parts[1] : '';
+      const selection = state.context.hasOwnProperty('selection')
+        ? state.context.selection : '';
+      const executionContext = {
+        typed: state.typed,
+        search,
+        selection
+      };
+      execute(name, executionContext);
       state.lastExecuted = name;
       updateMatchCount(name);
       updateMatchFeedback(state.typed, name);
@@ -243,7 +266,8 @@ async function onKeyup(e) {
     // search, and update UI
     state.matches = findMatchingCommands(state.typed);
     if (state.matches.length) {
-      r || console.log('matches!', state.matches);
+      r || console.log('commands matching typed text', state.matches);
+      // TODO: add suggestion list instead of just first match
       updateInputUI(state.typed, state.matches[0]);
       state.matchIndex = 0;
     }
@@ -337,7 +361,8 @@ async function updateInputUI(typed, completed) {
   }
 
   if (typed) {
-    const selectedText = await getSelectionFromCurrentTab();
+    //const selectedText = await getSelectionFromCurrentTab();
+    const selectedText = state.context.selection;
     if (selectedText.length > 0) {
       str += ` <em alt="${selectedText}">selection</em>`;
     }
@@ -418,6 +443,7 @@ function generateUnderlined(typed, match) {
   return str;
 }
 
+/*
 async function generateSelectionText() {
   const selectedText = await getSelectionFromCurrentTab();
   let str = '';
@@ -426,6 +452,7 @@ async function generateSelectionText() {
   }
   return str;
 }
+*/
 
 async function getSelectionFromCurrentTab() {
 	return await executeContentScript('getSelection')
@@ -438,6 +465,5 @@ async function executeContentScript(name) {
 	const results = await browser.tabs.executeScript(tab.id, {file: path})
 	return results[0]
 }
-
 
 })();

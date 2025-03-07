@@ -8,9 +8,9 @@ NOTES:
 
 * This is the WebExtension version of the older add-on.
 * It is experimental.
-* It only supports execution of [bookmarklets](https://support.mozilla.org/en-US/kb/bookmarklets-perform-common-web-page-tasks) at this time.
 
-## Usage and features:
+
+## Usage
 
 * Launch with control/command+shift+space.
 * Start typing to see matching commands.
@@ -21,14 +21,40 @@ NOTES:
 * Sorting: Results are sorted by the number of times you've selected that result.
 * Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").
 
+## Features
+
+Built-in commands are listed below.
+
+
+Bookmarklets
+Cmd scans all your bookmarks for URLs starting with `javascript:` and for each
+it adds a new command that is named with the bookmark title and executing the
+command executes the bookmarklet. Documentation on [bookmarklets at MDN](https://support.mozilla.org/en-US/kb/bookmarklets-perform-common-web-page-tasks).
 
 ## TODO
 
-core
-* Fix underlining - define behavior, what should be underlined?
+microformats / entity extraction
+- proper nouns
+- dates
+- emails
+- telephone #s
+- microformats
+- tracking numbers for packages
+- write a visualizer/calculator for these
 
-bugs
-* Why no work on Github?
+selection/clipboard
+- add a `select` command to select from extracted entities
+- add a `copy` command to put selection or extracted entities into clipboard
+
+extensibility
+- load command definitions as URLs which postMessage a la webiquity
+
+deployment
+- abstract core runtime
+- migrate to Peek
+- Chrome version
+
+misc
 * Define and document command syntax
 * Document existing commands
 * Remote commands (via manifest?)

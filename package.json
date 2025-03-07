@@ -1,0 +1,22 @@
+{
+  "name": "Cmd",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "chrome": "cp manifest-chrome.json manifest.json && open -a \"Google Chrome\" chrome://extensions/",
+    "firefox": "cp manifest-firefox.json manifest.json && web-ext run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/autonome/cmd.git"
+  },
+  "author": "Dietrich Ayala <me@burrito.space> (https://metafluff.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/autonome/cmd/issues"
+  },
+  "homepage": "https://github.com/autonome/cmd#readme",
+  "dependencies": {
+    "microformats-parser": "^2.0.2"
+  }
+}

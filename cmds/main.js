@@ -224,16 +224,15 @@ async function sourceRottenTomatoes() {
     name: 'rotten tomatoes',
     async execute(msg) {
       console.log('rt', msg);
-      if (msg.typed.indexOf(' ')) {
-        const search = msg.typed.replace('rotten tomatoes ', '');
-				const rtURL = 'https://www.rottentomatoes.com/?search=' + search
-        await browser.tabs.create({
-          url: rtURL
-        });
+      const search = msg.search.length > 0 ? msg.search : msg.selection;
+      if (search.length > 0) {
+        const url = `https://www.rottentomatoes.com/search?search=${search}`;
+        await browser.tabs.create({ url });
       }
-			else {
-				// help msg?
-			}
+      else {
+        // no-op
+        // help msg?
+      }
     }
   });
 }
@@ -273,7 +272,7 @@ console.log('p: port gotted')
 port.postMessage({cmd: 'getSelection'})
 console.log('p: msg posted')
 port.onMessage.addListener(msg => {
-	console.log('msg from content', msg)
+  console.log('msg from content', msg)
 })
 */
 
