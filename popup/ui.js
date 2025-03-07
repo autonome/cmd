@@ -124,13 +124,18 @@ async function css(el, props) {
 async function execute(name, context) {
   console.log('execute', name, context);
   if (state.commands[name]) {
+    console.log('executing...', state.commands[name]);
     // execute command
-    state.commands[name].execute(context);
+    await state.commands[name].execute(context);
+    console.log('executed');
     // close cmd popup
     // NOTE: this kills command execution
     // hrghhh, gotta turn execution completion promise
     // or run em async in background script
     setTimeout(shutdown, 100)
+  }
+  else {
+    console.error('no matching command, how did we get here?!', name, context);
   }
 }
 

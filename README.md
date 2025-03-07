@@ -34,7 +34,6 @@ command executes the bookmarklet. Documentation on [bookmarklets at MDN](https:/
 ## TODO
 
 cleanup
-- themes
 - generalize passing context to commands
 - generalize processing of page content (move out of cs?)
 

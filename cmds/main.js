@@ -1,6 +1,12 @@
 (async () => {
 
-const DEBUG = 0;
+const DEBUG = 1;
+
+function dbg(...args) {
+  if (DEBUG == 1) {
+    console.log(...args)
+  }
+}
 
 dbg('POPUP INNIT');
 
@@ -10,8 +16,6 @@ function onCommandsUpdated () {
   window.dispatchEvent(new CustomEvent('cmd-update-commands', { detail: commands }));
   dbg('main sending updated commands out', Object.keys(commands))
 }
-
-window.addEventListener('DOMContentLoaded', initializeCommandSources);
 
 /*
 command is an object with two properties:
@@ -29,19 +33,20 @@ function addCommand(command) {
   onCommandsUpdated();
 }
 
-function initializeCommandSources() {
+const initializeCommandSources = async () => {
   dbg('initializeCommandSources');
-  sourceBookmarklets();
-  sourceBookmark();
+  await sourceBookmarklets();
+  await sourceBookmark();
   //sourceEmail();
-  sourceGoogleDocs();
-  sourceSendToWindow();
-  sourceSwitchToWindow();
-  sourceNewContainerTab();
-  sourceSwitchTabContainer();
-  sourceNotify();
+  await sourceGoogleDocs();
+  await sourceSendToWindow();
+  await sourceSwitchToWindow();
+  await sourceNewContainerTab();
+  await sourceSwitchTabContainer();
+  await sourceNotify();
   onCommandsUpdated();
 }
+window.addEventListener('DOMContentLoaded', initializeCommandSources);
 
 async function sourceBookmarklets() {
   // add bookmarklets as commands
@@ -52,9 +57,12 @@ async function sourceBookmarklets() {
       async execute(cmd) {
         //const tags = cmd.typed.split(' ').filter(w => w != cmd.name)
         //console.log('tags', tags)
+        const search = cmd.search.length > 0 ? cmd.search : cmd.selection;
+        const code = b.url.replace('javascript:', '').replace('%s', `'${search}'`);
         const tabs = await browser.tabs.query({active:true});
         browser.tabs.executeScript(tabs[0].id, {
-          code: b.url.replace('javascript:', '')
+          //code: b.url.replace('javascript:', '')
+          code
         });
       }
     };
@@ -78,9 +86,9 @@ async function sourceBookmark() {
 async function sourceEmail() {
   addCommand({
     name: 'Email page to',
-    async execute(msg) {
+    async execute(cmd) {
       const tabs = await browser.tabs.query({active:true});
-      const email = msg.typed.replace(msg.name, '').trim();
+      const email = cmd.typed.replace(cmd.name, '').trim();
       const url =
         'mailto:' + email +
         '?subject=Web%20page!&body=' +
@@ -105,7 +113,7 @@ async function sourceGoogleDocs() {
   ].forEach(function(doc) {
     addCommand({
       name: doc.cmd,
-      async execute(msg) {
+      async execute(cmd) {
         await browser.tabs.create({
           url: doc.url
         });
@@ -120,7 +128,7 @@ async function sourceSendToWindow() {
   windows.forEach((w) => {
     addCommand({
       name: cmdPrefix + w.title,
-      async execute(msg) {
+      async execute(cmd) {
         const activeTabs = await browser.tabs.query({active: true});
         browser.tabs.move(activeTabs[0].id, {windowId: w.id, index: -1});
       }
@@ -134,7 +142,7 @@ async function sourceSwitchToWindow() {
   windows.forEach((w) => {
     addCommand({
       name: cmdPrefix + w.title,
-      async execute(msg) {
+      async execute(cmd) {
         browser.windows.update(w.id, { focused: true });
       }
     });
@@ -150,7 +158,7 @@ async function sourceNewContainerTab() {
     for (let identity of identities) {
       addCommand({
         name: cmdPrefix + identity.name,
-        async execute(msg) {
+        async execute(cmd) {
           browser.tabs.create({url: '', cookieStoreId: identity.cookieStoreId });
         }
       });
@@ -167,7 +175,7 @@ async function sourceSwitchTabContainer() {
     for (let identity of identities) {
       addCommand({
         name: cmdPrefix + identity.name,
-        async execute(msg) {
+        async execute(cmd) {
           const activeTabs = await browser.tabs.query({currentWindow: true, active: true});
           const tab = activeTabs[0];
           // some risk of losing old tab if new tab was not created successfully
@@ -183,13 +191,14 @@ async function sourceSwitchTabContainer() {
   });
 }
 
+// FIXME
 async function sourceNote() {
   addCommand({
     name: 'note',
-    async execute(msg) {
-      console.log('note execd', msg)
-      if (msg.typed.indexOf(' ')) {
-        const note = msg.typed.replace('note ', '');
+    async execute(cmd) {
+      console.log('note execd', cmd)
+      if (cmd.typed.indexOf(' ')) {
+        const note = cmd.typed.replace('note ', '');
         await saveNewNote(note) 
         notify('note saved!', note)
       }
@@ -217,14 +226,12 @@ async function sourceNote() {
     console.log('saved store', store);
   }
 }
-await sourceNote()
 
 async function sourceRottenTomatoes() {
   addCommand({
     name: 'rotten tomatoes',
-    async execute(msg) {
-      console.log('rt', msg);
-      const search = msg.search.length > 0 ? msg.search : msg.selection;
+    async execute(cmd) {
+      const search = cmd.search.length > 0 ? cmd.search : cmd.selection;
       if (search.length > 0) {
         const url = `https://www.rottentomatoes.com/search?search=${search}`;
         await browser.tabs.create({ url });
@@ -236,31 +243,26 @@ async function sourceRottenTomatoes() {
     }
   });
 }
-await sourceRottenTomatoes()
-
-function dbg(...args) {
-  if (DEBUG == 1) {
-    console.log(...args)
-  }
-}
 
 function notify(title, content) {
   browser.notifications.create({
-    "type": "basic",
-    "iconUrl": browser.runtime.getURL("images/icon.png"),
-    "title": title,
-    "message": content
+    type: 'basic',
+    iconUrl: browser.runtime.getURL('images/icon.png'),
+    title,
+    message: content
   });
 }
 
+// FIXME
 const sourceNotify = async () => {
   addCommand({
     name: 'notify',
-    async execute(msg) {
-      console.log('notify execd', msg)
-      if (msg.typed.indexOf(' ')) {
-        const note = msg.typed.replace('notify ', '');
-        notify('Notification', note)
+    async execute(cmd) {
+      console.log('notify() execd', cmd)
+      const search = cmd.search.length > 0 ? cmd.search : cmd.selection;
+      console.log('search', search);
+      if (search.length > 0) {
+        notify('Cmd notification', search)
       }
     }
   });
