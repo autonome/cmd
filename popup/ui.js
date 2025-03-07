@@ -49,7 +49,7 @@ let state = {
   lastExecuted: '' // text last typed by user when last they hit return
 };
 
-let strings = {
+const strings = {
   defaultCmdText: 'Start typing...'
 }
 
@@ -58,9 +58,9 @@ window.addEventListener('cmd-update-commands', function(e) {
   state.commands = e.detail;
 });
 
-async function render() {
+async function initInputPanel() {
   // Outer container
-  let panel = document.createElement('div');
+  const panel = document.createElement('div');
   panel.id = 'cmdPanel';
   panel.classList.add('cmdPanel');
 
@@ -78,7 +78,7 @@ async function render() {
   });
 
   // Where text is shown
-  let input = document.createElement('div');
+  const input = document.createElement('div');
   input.id = 'cmdInput';
 
   await css(input, {
@@ -102,7 +102,7 @@ async function render() {
   document.addEventListener('input', onKeyDummyStop, true);
 }
 
-render();
+initInputPanel();
 
 async function css(el, props) {
   Object.keys(props).forEach(p => el.style[p] = props[p]);
@@ -124,8 +124,8 @@ function findMatchingCommands(text) {
   const r = true;
   r || console.log('findMatchingCommands', text, state.commands.length);
 
-  let count = state.commands.length,
-      matches = [];
+  let count = state.commands.length;
+  let matches = [];
 
   // Iterate over all commands, searching for matches
   //for (var i = 0; i < count; i++) {
@@ -210,7 +210,7 @@ async function onKeyup(e) {
   // if user pressed return, attempt to execute command
   else if (e.key == 'Enter' && !hasModifier(e)) {
     r || console.log('onKeyUp: enter!', state.typed);
-    let name = state.matches[state.matchIndex];
+    const name = state.matches[state.matchIndex];
     if (Object.keys(state.commands).indexOf(name) > -1) {
       //await shutdown();
       execute(name, state.typed);
@@ -337,21 +337,24 @@ async function updateInputUI(typed, completed) {
   }
 
   if (typed) {
-    str += await generateSelectionText()
+    const selectedText = await getSelectionFromCurrentTab();
+    if (selectedText.length > 0) {
+      str += ` <em alt="${selectedText}">selection</em>`;
+    }
   }
 
-  let parser = new DOMParser();
-  let doc = parser.parseFromString(str, 'text/html');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(str, 'text/html');
 
-  let input = document.querySelector('#cmdInput');
+  const input = document.querySelector('#cmdInput');
   if (input && input.firstElementChild)
     input.removeChild(input.firstElementChild);
   input.appendChild(doc.firstElementChild);
 
   /*
-  let parent = input.parentNode;
+  const parent = input.parentNode;
   state.matches.forEach(match => {
-    let node = document.createElement('div')
+    const node = document.createElement('div')
     node.innerText = match
     parent.appendChild(node)
   });
@@ -416,23 +419,23 @@ function generateUnderlined(typed, match) {
 }
 
 async function generateSelectionText() {
-  let selectedText = await getSelection()
+  const selectedText = await getSelectionFromCurrentTab();
   let str = '';
   if (selectedText.length > 0) {
-    str = ' <em alt="' + selectedText + '">selection</em>'
+    str = ` <em alt="${selectedText}">selection</em>`;
   }
-  return str
+  return str;
 }
 
-async function getSelection() {
+async function getSelectionFromCurrentTab() {
 	return await executeContentScript('getSelection')
 }
 
 async function executeContentScript(name) {
-	let tabs = await browser.tabs.query({ currentWindow: true, active: true })
-	let tab = tabs[0]
-	let path = '/content-scripts/' + name + '.js'
-	let results = await browser.tabs.executeScript(tab.id, {file: path})
+	const tabs = await browser.tabs.query({ currentWindow: true, active: true })
+	const tab = tabs[0]
+	const path = '/cs/' + name + '.js'
+	const results = await browser.tabs.executeScript(tab.id, {file: path})
 	return results[0]
 }
 

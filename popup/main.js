@@ -2,7 +2,7 @@
 
 const DEBUG = 0;
 
-dbg('POPUP INIT');
+dbg('POPUP INNIT');
 
 let commands = {};
 
@@ -39,19 +39,20 @@ function initializeCommandSources() {
   sourceSwitchToWindow();
   sourceNewContainerTab();
   sourceSwitchTabContainer();
+  sourceNotify();
   onCommandsUpdated();
 }
 
 async function sourceBookmarklets() {
   // add bookmarklets as commands
-  let bmarklets = await browser.bookmarks.search({ query: 'javascript:'} );
+  const bmarklets = await browser.bookmarks.search({ query: 'javascript:'} );
   bmarklets.map(b => {
     return {
       name: b.title,
       async execute(cmd) {
-        //let tags = cmd.typed.split(' ').filter(w => w != cmd.name)
+        //const tags = cmd.typed.split(' ').filter(w => w != cmd.name)
         //console.log('tags', tags)
-        let tabs = await browser.tabs.query({active:true});
+        const tabs = await browser.tabs.query({active:true});
         browser.tabs.executeScript(tabs[0].id, {
           code: b.url.replace('javascript:', '')
         });
@@ -64,8 +65,8 @@ async function sourceBookmark() {
   addCommand({
     name: 'bookmark current page',
     async execute() {
-      let tab = await browser.tabs.query({active:true});
-      let node = await browser.bookmarks.create({
+      const tab = await browser.tabs.query({active:true});
+      const node = await browser.bookmarks.create({
         title: tab[0].title,
         url: tab[0].url
       });
@@ -78,9 +79,9 @@ async function sourceEmail() {
   addCommand({
     name: 'Email page to',
     async execute(msg) {
-      let tabs = await browser.tabs.query({active:true});
-      let email = msg.typed.replace(msg.name, '').trim();
-      let url =
+      const tabs = await browser.tabs.query({active:true});
+      const email = msg.typed.replace(msg.name, '').trim();
+      const url =
         'mailto:' + email +
         '?subject=Web%20page!&body=' +
         encodeURIComponent(tabs[0].title) +
@@ -188,7 +189,7 @@ async function sourceNote() {
     async execute(msg) {
       console.log('note execd', msg)
       if (msg.typed.indexOf(' ')) {
-        let note = msg.typed.replace('note ', '');
+        const note = msg.typed.replace('note ', '');
         await saveNewNote(note) 
         notify('note saved!', note)
       }
@@ -199,7 +200,7 @@ async function sourceNote() {
   const STG_TYPE = 'local';
 
   async function saveNewNote(note) {
-    let store = await browser.storage[STG_TYPE].get(STG_KEY)
+    const store = await browser.storage[STG_TYPE].get(STG_KEY)
     console.log('store', store)
     if (Object.keys(store).indexOf(STG_KEY) == -1) {
       console.log('new store')
@@ -222,9 +223,10 @@ async function sourceRottenTomatoes() {
   addCommand({
     name: 'rotten tomatoes',
     async execute(msg) {
+      console.log('rt', msg);
       if (msg.typed.indexOf(' ')) {
-        let search = msg.typed.replace('rotten tomatoes ', '');
-				let rtURL = 'https://www.rottentomatoes.com/?search=' + search
+        const search = msg.typed.replace('rotten tomatoes ', '');
+				const rtURL = 'https://www.rottentomatoes.com/?search=' + search
         await browser.tabs.create({
           url: rtURL
         });
@@ -246,14 +248,27 @@ function dbg(...args) {
 function notify(title, content) {
   browser.notifications.create({
     "type": "basic",
-    "iconUrl": browser.extension.getURL("images/icon.png"),
+    "iconUrl": browser.runtime.getURL("images/icon.png"),
     "title": title,
     "message": content
   });
 }
 
+const sourceNotify = async () => {
+  addCommand({
+    name: 'notify',
+    async execute(msg) {
+      console.log('notify execd', msg)
+      if (msg.typed.indexOf(' ')) {
+        const note = msg.typed.replace('notify ', '');
+        notify('Notification', note)
+      }
+    }
+  });
+}
+
 /*
-let port = browser.tabs.connect(tab.id, {name:'popup'})
+const port = browser.tabs.connect(tab.id, {name:'popup'})
 console.log('p: port gotted')
 port.postMessage({cmd: 'getSelection'})
 console.log('p: msg posted')

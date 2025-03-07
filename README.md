@@ -21,24 +21,36 @@ NOTES:
 * Sorting: Results are sorted by the number of times you've selected that result.
 * Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").
 
-## Log
-
-### Next version (iow, done but not on AMO yet)
-
-* Add other basic built-ins like "bookmark", "email page to"
 
 ## TODO
 
-* Why no work on Github?
+core
 * Fix underlining - define behavior, what should be underlined?
-* gdocs cmds
-* Share cmds (urls)
+
+bugs
+* Why no work on Github?
 * Define and document command syntax
 * Document existing commands
 * Remote commands (via manifest?)
 * Add basic web page commands like Ubiquity's built-ins
 * Map the path to Ubiquity preview panels
 * Add command chaining
+
+cmds
+* gdocs cmds
+* Share cmds (urls)
+- timers
+- search and switch to open tabs
+- bookmark page
+- tag page
+- email page to
+
+add tab commands
+- move left/right
+- new tab
+- close tab
+- reload tab
+- move tab to window {index/search?}
 
 ### Command: New container tab
 

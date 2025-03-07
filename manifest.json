@@ -19,17 +19,27 @@
     "storage",
     "tabs"
   ],
-	"commands": {
-		"_execute_browser_action": {
-			"suggested_key": {
-				"default": "Ctrl+Shift+Space"
-			},
-			"description": "Open the cmd UI."
-		}
-	},
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space"
+      },
+      "description": "Open the cmd UI."
+    }
+  },
   "browser_action": {
     "default_icon": "images/icon.png",
     "default_title": "cmd",
     "default_popup": "popup/index.html"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "all_frames": true,
+      "js": [
+        "cs/microformat-shiv.js",
+        "cs/scanner.js"],
+      "run_at": "document_end"
+    }
+  ]
 }
