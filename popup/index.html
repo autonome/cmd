@@ -6,10 +6,32 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-  body {
-    margin: 0;
-    padding: 0;
+@media (prefers-color-scheme: light) {
+  :root {
+    --text: #17141f;
+    --background: #faf9fb;
+    --primary: #000000;
+    --secondary: #000000;
+    --accent: #000000;
   }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e3e0eb;
+    --background: #050406;
+    --primary: #ffffff;
+    --secondary: #ffffff;
+    --accent: #ffffff;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  background-color: var(--background);
+}
   </style>
 </head>
 <body>
