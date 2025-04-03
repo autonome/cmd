@@ -366,9 +366,8 @@ async function updateInputUI(typed, completed) {
   }
 
   if (typed) {
-    //const selectedText = await getSelectionFromCurrentTab();
     const selectedText = state.context.selection;
-    if (selectedText.length > 0) {
+    if (selectedText && selectedText.length > 0) {
       str += ` <em alt="${selectedText}">selection</em>`;
     }
   }
@@ -446,21 +445,6 @@ function generateUnderlined(typed, match) {
           "<span class='typed'>" + match + "</span>";
   }
   return str;
-}
-
-/*
-async function generateSelectionText() {
-  const selectedText = await getSelectionFromCurrentTab();
-  let str = '';
-  if (selectedText.length > 0) {
-    str = ` <em alt="${selectedText}">selection</em>`;
-  }
-  return str;
-}
-*/
-
-async function getSelectionFromCurrentTab() {
-	return await executeContentScript('getSelection')
 }
 
 async function executeContentScript(name) {

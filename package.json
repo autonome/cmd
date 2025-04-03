@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "start": "extension start",
+    "dev": "extension dev --browser firefox --profile '/Users/dietrich/Library/Application\\ Support/Firefox/Profiles/968y81sp.ext-release'",
+    "build": "extension build",
     "chrome": "cp manifest-chrome.json manifest.json && open -a \"Google Chrome\" chrome://extensions/",
     "firefox": "cp manifest-firefox.json manifest.json && web-ext run"
   },
@@ -17,6 +20,10 @@
   },
   "homepage": "https://github.com/autonome/cmd#readme",
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
     "microformats-parser": "^2.0.2"
+  },
+  "devDependencies": {
+    "extension": "latest"
   }
 }

@@ -1,4 +1,8 @@
-(async () => {
+/*
+import { Readability } from '../node_modules/@mozilla/readability';
+
+console.log('READ', Readability);
+*/
 
 const DEBUG = 1;
 
@@ -35,17 +39,27 @@ function addCommand(command) {
 
 const initializeCommandSources = async () => {
   dbg('initializeCommandSources');
-  await sourceBookmarklets();
   await sourceBookmark();
+  await sourceBookmarklets();
   //sourceEmail();
   await sourceGoogleDocs();
-  await sourceSendToWindow();
-  await sourceSwitchToWindow();
   await sourceNewContainerTab();
-  await sourceSwitchTabContainer();
   await sourceNotify();
+  await sourceRottenTomatoes();
+  await sourceSendToWindow();
+  await sourceSwitchTabContainer();
+  await sourceSwitchToWindow();
   onCommandsUpdated();
-}
+};
+
+const init = async () => {
+  const documentClone = document.cloneNode(true);
+  const pageText = new Readability(documentClone).parse();
+  console.log('readability', pageText);
+
+  await initializeCommandSources();
+};
+
 window.addEventListener('DOMContentLoaded', initializeCommandSources);
 
 async function sourceBookmarklets() {
@@ -229,7 +243,7 @@ async function sourceNote() {
 
 async function sourceRottenTomatoes() {
   addCommand({
-    name: 'rotten tomatoes',
+    name: 'Rotten Tomatoes',
     async execute(cmd) {
       const search = cmd.search.length > 0 ? cmd.search : cmd.selection;
       if (search.length > 0) {
@@ -277,5 +291,3 @@ port.onMessage.addListener(msg => {
   console.log('msg from content', msg)
 })
 */
-
-})();
