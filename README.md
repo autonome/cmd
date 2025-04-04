@@ -8,6 +8,8 @@ NOTES:
 
 * This is the WebExtension version of the older add-on.
 * It is experimental.
+* Commands are organized as ES modules in the `/cmds/commands/` directory.
+* Each command is exported as a default export with a standard format.
 
 
 ## Usage
@@ -20,6 +22,44 @@ NOTES:
 * The last executed command is shown by default.
 * Sorting: Results are sorted by the number of times you've selected that result.
 * Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").
+
+## Creating Commands
+
+Commands follow a standard ESM export format. There are two types of commands:
+
+1. **Simple commands** - These have a fixed name and execute function:
+```javascript
+// Example simple command in /cmds/commands/myCommand.js
+export default {
+  name: 'My Command Name',
+  async execute(cmd) {
+    // Command code goes here
+    // cmd contains: typed, search, selection
+  }
+};
+```
+
+2. **Dynamic commands** - These generate multiple commands from a source:
+```javascript
+// Example dynamic command in /cmds/commands/myDynamicCommand.js
+export default {
+  name: 'myDynamicCommand',
+  async source() {
+    // Fetch data or enumerate items
+    const items = await fetchItems();
+    
+    // Return an array of command objects
+    return items.map(item => ({
+      name: `My Command: ${item.name}`,
+      async execute(cmd) {
+        // Command code goes here
+      }
+    }));
+  }
+};
+```
+
+Add your new command to `/cmds/commands/index.js` to make it available.
 
 ## Features
 

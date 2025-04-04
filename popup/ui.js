@@ -34,11 +34,13 @@ TODO: Commands
 
 */
 
+import { commands } from '../cmds/commands/index.js';
+
 (async () => {
 
 let state = {
   context: {}, // map of context information eg selection, microformats (for now)
-  commands: [], // array of command names
+  commands: commands, // commands object imported from ESM module
   matches: [], // array of commands matching the typed text
   matchIndex: 0, // index of ???
   matchCounts: {}, // match counts - selectedcommand:numberofselections
@@ -66,10 +68,7 @@ const strings = {
   defaultCmdText: 'Start typing...'
 }
 
-window.addEventListener('cmd-update-commands', function(e) {
-  //console.log('ui received updated commands');
-  state.commands = e.detail;
-});
+// Import commands directly from ESM module instead of using event listener
 
 async function initInputPanel() {
   // Outer container

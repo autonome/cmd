@@ -5,7 +5,7 @@ const strings = {
   name: 'bookmark current page',
 };
 
-export {
+export default {
   name: strings.name,
   async execute() {
     const tab = await browser.tabs.query({active:true});
