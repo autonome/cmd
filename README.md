@@ -10,18 +10,27 @@ NOTES:
 * It is experimental.
 * Commands are organized as ES modules in the `/cmds/commands/` directory.
 * Each command is exported as a default export with a standard format.
+* Command modules are loaded when the popup is opened.
 
 
 ## Usage
 
+### Basic Usage
 * Launch with control/command+shift+space.
 * Start typing to see matching commands.
-* Hit the tab key to cycle through multiple matches (shift+tab to cycle  backwards). Example: type "pre" and hit tab a bunch of times.
+* Hit the tab key to cycle through multiple matches (shift+tab to cycle backwards). Example: type "pre" and hit tab a bunch of times.
 * Hit enter to select the current match.
 * Hit escape to hide cmd without selecting a command.
 * The last executed command is shown by default.
-* Sorting: Results are sorted by the number of times you've selected that result.
-* Adaptive matching: The first result for what you type will the last-selected command for those typed characters (eg: "bo" -> "Bookmark this page").
+
+### Advanced Features
+* **Command Parameters**: Type a command followed by text to pass parameters. For example: 
+  * "Rotten Tomatoes Inception" - searches for "Inception" on Rotten Tomatoes
+  * "Email page to user@example.com" - emails the current page to the specified address
+  * "notify Hello world" - displays a notification with "Hello world"
+* **Selection Context**: Commands can use text you've selected on the webpage. If you select text before running Cmd, commands can operate on that selection.
+* **Sorting**: Results are sorted by the number of times you've selected that result.
+* **Adaptive Matching**: The first result for what you type will be the last-selected command for those typed characters (e.g., "bo" -> "Bookmark this page").
 
 ## Creating Commands
 
@@ -61,69 +70,84 @@ export default {
 
 Add your new command to `/cmds/commands/index.js` to make it available.
 
-## Features
+## Supported Commands
 
-Built-in commands are listed below.
+The following commands are currently supported:
 
+### Bookmark Commands
+- **bookmark current page**: Creates a bookmark of the current page.
+- **Bookmarklets**: All bookmarks with URLs starting with `javascript:` are available as commands. Type any part of the bookmark name to find them. Documentation on [bookmarklets at MDN](https://support.mozilla.org/en-US/kb/bookmarklets-perform-common-web-page-tasks).
 
-Bookmarklets
-Cmd scans all your bookmarks for URLs starting with `javascript:` and for each
-it adds a new command that is named with the bookmark title and executing the
-command executes the bookmarklet. Documentation on [bookmarklets at MDN](https://support.mozilla.org/en-US/kb/bookmarklets-perform-common-web-page-tasks).
+### Container Commands
+- **New container tab: [container]**: Opens a new tab in the specified container.
+- **Switch container to: [container]**: Reopens the current tab in the specified container.
+
+### Google Docs Commands
+- **New Google doc**: Opens a new Google Docs document.
+- **New Google sheet**: Opens a new Google Sheets spreadsheet.
+
+### Window Management Commands
+- **Switch to window: [window]**: Switches focus to the specified window.
+- **Move to window: [window]**: Moves the current tab to the specified window.
+
+### Search and Content Commands
+- **Rotten Tomatoes**: Searches Rotten Tomatoes for the selected text or parameter provided.
+- **Email page to**: Emails the current page to the specified email address.
+
+### Utility Commands
+- **notify**: Creates a browser notification with the selected text or parameter provided.
+- **note**: Creates a stored note from the provided text.
 
 ## TODO
 
-cleanup
-- generalize passing context to commands
-- generalize processing of page content (move out of cs?)
+### Structure and Architecture
+- Move command execution to background script
+- Add command parameters API
+- Add command feedback and preview panels
+- Add command chaining
 
-microformats / entity extraction
-- proper nouns (wink?)
-- dates
-- emails
-- telephone #s
-- microformats
-- tracking numbers for packages
-- write a visualizer/calculator for these
+### Content Processing
+- Generalize passing context to commands
+- Generalize processing of page content (move out of cs/)
 
-selection/clipboard
-- add a `select` command to select from extracted entities
-- add a `copy` command to put selection or extracted entities into clipboard
+### Entity Extraction
+- Extract proper nouns
+- Extract dates
+- Extract emails and phone numbers
+- Extract microformats
+- Extract tracking numbers for packages
+- Add visualizer/calculator for extracted entities
 
-extensibility
-- load command definitions as URLs which postMessage a la webiquity
+### Selection and Clipboard
+- Add a `select` command to select from extracted entities
+- Add a `copy` command to put selection or extracted entities into clipboard
 
-deployment
-- abstract core runtime
-- migrate to Peek
-- Chrome version
+### Extensibility
+- Load command definitions from URLs via postMessage
+- Support remote commands via manifest
+- Support command contributions from other extensions
 
-misc
-* Define and document command syntax
-* Document existing commands
-* Remote commands (via manifest?)
-* Add basic web page commands like Ubiquity's built-ins
-* Map the path to Ubiquity preview panels
-* Add command chaining
+### Deployment
+- Add Chrome support
+- Package for distribution
 
-cmds
-* gdocs cmds
-* Share cmds (urls)
-- timers
-- search and switch to open tabs
-- bookmark page
-- tag page
-- email page to
+### Command Features
+- Add command screenshots (especially for window switching)
+- Add command suggestions based on context
+- Add adaptive matching improvements
 
-add tab commands
-- move left/right
-- new tab
-- close tab
-- reload tab
-- move tab to window {index/search?}
+### New Commands
+- Add search and switch to open tabs
+- Add tab management commands (move, new, close, reload)
+- Add timers
+- Add share commands (social media, messaging)
+- Add tag page command
+- Add advanced tab commands:
+  - Move tab left/right
+  - Close tab
+  - Reload tab
+  - Duplicate tab
 
-### Command: New container tab
-
-TODO
-* if clipboard has a url, automatically load it?
+### Container Tab Improvements
+- Add option to load clipboard URL automatically when creating container tabs
 
