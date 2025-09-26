@@ -1,14 +1,4 @@
-// Export note command
-export default {
-  name: 'note',
-  async execute(cmd) {
-    if (cmd.typed.indexOf(' ')) {
-      const note = cmd.typed.replace('note ', '');
-      await saveNewNote(note);
-      notify('note saved!', note);
-    }
-  }
-};
+import { dbg, notify } from './utils.js';
 
 const STG_KEY = 'cmd:notes';
 const STG_TYPE = 'local';
@@ -28,11 +18,14 @@ async function saveNewNote(note) {
   await browser.storage[STG_TYPE].set({ [STG_KEY]: store });
 }
 
-function notify(title, content) {
-  browser.notifications.create({
-    type: 'basic',
-    iconUrl: browser.runtime.getURL('images/icon.png'),
-    title,
-    message: content
-  });
-}
+// Export note command
+export default {
+  name: 'note',
+  async execute(cmd) {
+    if (cmd.typed.indexOf(' ')) {
+      const note = cmd.typed.replace('note ', '');
+      await saveNewNote(note);
+      notify('note saved!', note);
+    }
+  }
+};

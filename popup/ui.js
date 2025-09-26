@@ -34,9 +34,12 @@ TODO: Commands
 
 */
 
-import { commands } from '../cmds/commands/index.js';
+import { commands, initializeCommandSources } from '../cmds/commands/index.js';
 
 (async () => {
+
+// Initialize commands
+await initializeCommandSources();
 
 let state = {
   context: {}, // map of context information eg selection, microformats (for now)
@@ -230,16 +233,23 @@ async function onKeyup(e) {
     r || console.log('onKeyUp: enter!', state.typed);
     const name = state.matches[state.matchIndex];
     if (Object.keys(state.commands).indexOf(name) > -1) {
-      //await shutdown();
+      // array of all parts of typed string
       const parts = state.typed.trim().split(name).map(s => s.trim());
-      const search = parts.length > 1 ? parts[1] : '';
+      // array of command parameters (everything after command name)
+      const params = parts.slice(1);
+      // typed string after command name
+      const search = params.length > 0 ? params.join(' ') : null;
+      // selection text, if any
       const selection = state.context.hasOwnProperty('selection')
-        ? state.context.selection : '';
+        ? state.context.selection : null;
       const executionContext = {
-        typed: state.typed,
+        // typed string including command name
+        params,
         search,
-        selection
+        selection,
+        typed: state.typed
       };
+      console.log(JSON.stringify(executionContext));
       execute(name, executionContext);
       state.lastExecuted = name;
       updateMatchCount(name);

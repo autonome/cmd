@@ -11,6 +11,7 @@ import switchTabContainer from './switchTabContainer.js';
 import note from './note.js';
 import rottenTomatoes from './rottenTomatoes.js';
 import notify from './notify.js';
+import groups from './groups.js';
 
 // Commands registry
 export let commands = {};
@@ -18,6 +19,7 @@ export let commands = {};
 // Register a command
 export function addCommand(command) {
   commands[command.name] = command;
+  // TODO: debounce
   onCommandsUpdated();
 }
 
@@ -32,12 +34,17 @@ export const initializeCommandSources = async () => {
   dbg('initializeCommandSources');
   
   // Register simple commands
+  /*
   addCommand(bookmark);
   addCommand(email);
   addCommand(note);
   addCommand(rottenTomatoes);
   addCommand(notify);
-  
+  */
+  groups.forEach(addCommand);
+  dbg('Registered groups command');
+
+  /* 
   // Register commands from Google Docs
   googleDocs.forEach(addCommand);
   
@@ -56,6 +63,7 @@ export const initializeCommandSources = async () => {
   
   const switchContainerCommands = await switchTabContainer.source();
   switchContainerCommands.forEach(addCommand);
+  */
   
   onCommandsUpdated();
 };
