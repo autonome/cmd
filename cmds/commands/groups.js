@@ -7,6 +7,10 @@ TODO
 - handle invalid group names
 - handle empty groups
 
+Feature stuff to figure out
+- would 'close group' just close the window?
+- auto-save group to sync w/ the active window?
+
 */
 
 const STG_PREFIX = 'cmd:group:';
